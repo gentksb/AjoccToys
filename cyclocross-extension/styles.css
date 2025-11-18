@@ -1,0 +1,200 @@
+/**
+ * Cyclocross Lap Time Converter Styles
+ * 変換されたラップタイムを視覚的に明示
+ */
+
+/* 変換されたラップタイムのセル */
+.converted-lap-time {
+  background-color: #e8f5e9 !important;
+  position: relative;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .converted-lap-time {
+    background-color: #1b5e20 !important;
+    color: #e8f5e9 !important;
+  }
+}
+
+/* ホバー時のエフェクト */
+.converted-lap-time:hover {
+  background-color: #c8e6c9 !important;
+  cursor: help;
+}
+
+@media (prefers-color-scheme: dark) {
+  .converted-lap-time:hover {
+    background-color: #2e7d32 !important;
+  }
+}
+
+/* 変換済みマーカー（セルの右上に小さなアイコン） */
+.converted-lap-time::after {
+  content: "⏱";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+/* ツールチップ（元の値を表示） */
+.converted-lap-time::before {
+  content: "元の値: " attr(data-original);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  margin-bottom: 5px;
+}
+
+.converted-lap-time:hover::before {
+  opacity: 1;
+}
+
+/* 変換されたテーブル全体のマーキング */
+.lap-time-converted-table {
+  border: 2px solid #4caf50;
+  border-radius: 4px;
+}
+
+/* 通知バナー */
+.lap-time-converter-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  padding: 12px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.lap-time-converter-banner.fade-out {
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 10px;
+}
+
+.banner-icon {
+  font-size: 24px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.banner-text {
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+  text-align: center;
+}
+
+.banner-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.banner-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .lap-time-converter-banner {
+    padding: 10px 15px;
+  }
+
+  .banner-text {
+    font-size: 12px;
+  }
+
+  .banner-icon {
+    font-size: 20px;
+  }
+
+  .converted-lap-time::before {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+
+/* プリント時は変換マーカーを非表示 */
+@media print {
+  .converted-lap-time::after {
+    display: none;
+  }
+
+  .lap-time-converter-banner {
+    display: none;
+  }
+
+  .converted-lap-time {
+    background-color: transparent !important;
+  }
+
+  .lap-time-converted-table {
+    border: none;
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Cyclocross Lap Time Converter",
+  "version": "1.0.0",
+  "description": "シクロクロス公式リザルトページの経過時間をネットラップタイムに変換します",
+  "permissions": [],
+  "host_permissions": [
+    "https://data.cyclocross.jp/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://data.cyclocross.jp/race/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Cyclocross Lap Time Converter"
+  }
+}
