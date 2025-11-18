@@ -43,7 +43,7 @@
 
 /* ツールチップ（元の値を表示） */
 .converted-lap-time::before {
-  content: "元の値: " attr(data-original);
+  content: "元の経過時間: " attr(data-original-time);
   position: absolute;
   bottom: 100%;
   left: 50%;
