@@ -3,6 +3,12 @@
  * 経過時間をネットラップタイムに変換するChrome拡張機能
  */
 
+// グローバル変数: ON/OFF状態
+let isEnabled = true;
+
+// グローバル変数: グラフ用データ（テーブルごと）
+const graphDataMap = new Map(); // key: table要素, value: { riders: [...], startLoopIndex: ... }
+
 // 時間文字列をミリ秒に変換
 function parseTimeToMs(timeStr) {
   if (!timeStr || timeStr.trim() === '' || timeStr === '-') {
@@ -247,6 +253,9 @@ function convertLapTimesInTable(table) {
   // 全選手のラップタイムを保存（ベストラップ検出用）
   const allLapTimes = []; // [{ cell, netLapTime, lapIndex, rowIndex }, ...]
 
+  // グラフ用データ保存用
+  const graphRiders = [];
+
   rows.forEach((row, rowIndex) => {
     const cells = Array.from(row.querySelectorAll('td'));
 
@@ -256,6 +265,11 @@ function convertLapTimesInTable(table) {
       console.log(`  行${rowIndex + 1}: DNS行のためスキップ`);
       return;
     }
+
+    // 選手情報を取得（グラフ用）
+    const rank = cells[0] ? cells[0].textContent.trim() : '';
+    const riderNameCell = cells[1];
+    const riderName = riderNameCell ? (riderNameCell.querySelector('a') || riderNameCell).textContent.trim() : '選手' + (rowIndex + 1);
 
     // 各行のラップタイムデータを収集
     const lapData = [];
@@ -295,6 +309,7 @@ function convertLapTimesInTable(table) {
     // 経過時間からネットラップタイムに変換
     let prevMs = 0;
     const riderLapTimes = []; // この選手のラップタイム（ベストラップ検出用）
+    const graphLapTimes = []; // グラフ用ラップタイム配列（ミリ秒）
 
     lapData.forEach(({ cell, textDiv, ms, original }, lapIndex) => {
       if (ms !== null && ms > 0) {
@@ -317,6 +332,7 @@ function convertLapTimesInTable(table) {
           if (original !== '' && original !== '-') {
             riderLapTimes.push({ cell, netLapTime, lapIndex });
             allLapTimes.push({ cell, netLapTime, lapIndex, rowIndex });
+            graphLapTimes.push(netLapTime); // グラフ用データ
           }
           prevMs = ms;
           return;
@@ -349,6 +365,7 @@ function convertLapTimesInTable(table) {
           // ラップタイムを記録
           riderLapTimes.push({ cell, netLapTime, lapIndex });
           allLapTimes.push({ cell, netLapTime, lapIndex, rowIndex });
+          graphLapTimes.push(netLapTime); // グラフ用データ
 
           convertedCount++;
 
@@ -382,6 +399,16 @@ function convertLapTimesInTable(table) {
         });
       }
     }
+
+    // グラフ用データに選手情報を追加
+    if (graphLapTimes.length > 0) {
+      graphRiders.push({
+        name: riderName,
+        rank: rank,
+        lapTimes: graphLapTimes,
+        row: row
+      });
+    }
   });
 
   // レース全体のベストラップを検出（スタートループを除外）
@@ -413,6 +440,14 @@ function convertLapTimesInTable(table) {
   if (convertedCount > 0) {
     console.log(`${convertedCount}個のラップタイムを変換しました`);
     table.classList.add('lap-time-converted-table');
+
+    // グラフ用データを保存
+    graphDataMap.set(table, {
+      riders: graphRiders,
+      startLoopIndex: startLoopIndex
+    });
+    console.log(`  グラフ用データ保存: ${graphRiders.length}名の選手`);
+
     return true;
   }
 
@@ -495,9 +530,6 @@ function main() {
 
   console.log('=====================================\n');
 }
-
-// グローバル変数: ON/OFF状態
-let isEnabled = true;
 
 // 変換を元に戻す関数
 function revertConversion() {
