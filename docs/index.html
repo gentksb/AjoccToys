@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="シクロクロス公式リザルトページの経過時間をネットラップタイムに変換するChrome拡張機能">
+  <meta name="keywords" content="シクロクロス,ラップタイム,Chrome拡張機能,cyclocross">
+  <title>Cyclocross Lap Time Converter - シクロクロスのラップタイム分析を簡単に</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      padding: 1rem 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    header nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+
+    header nav a:hover {
+      opacity: 0.8;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 5rem 0;
+      text-align: center;
+    }
+
+    .hero h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
+      opacity: 0.95;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.875rem 2rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background-color: #4CAF50;
+      color: white;
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    }
+
+    .btn-primary:hover {
+      background-color: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
+    }
+
+    .btn-secondary {
+      background-color: white;
+      color: #667eea;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary:hover {
+      background-color: #f5f5f5;
+      transform: translateY(-2px);
+    }
+
+    /* Features Section */
+    .features {
+      padding: 4rem 0;
+      background-color: white;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 3rem;
+      color: #333;
+      font-weight: 700;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .feature-card {
+      background-color: #f9f9f9;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+      color: #4CAF50;
+    }
+
+    .feature-card p {
+      color: #666;
+      line-height: 1.7;
+    }
+
+    /* Screenshots Section */
+    .screenshots {
+      padding: 4rem 0;
+      background-color: #f5f5f5;
+    }
+
+    .screenshot-item {
+      margin-bottom: 3rem;
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .screenshot-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .screenshot-caption {
+      padding: 1.5rem;
+    }
+
+    .screenshot-caption h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+
+    .screenshot-caption p {
+      color: #666;
+      line-height: 1.7;
+    }
+
+    /* Installation Section */
+    .installation {
+      padding: 4rem 0;
+      background-color: white;
+    }
+
+    .install-steps {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .install-step {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      border-left: 4px solid #4CAF50;
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .step-content h3 {
+      font-size: 1.125rem;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+
+    .step-content p {
+      color: #666;
+      line-height: 1.7;
+    }
+
+    .step-content code {
+      background-color: #f0f0f0;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-family: "Courier New", monospace;
+      font-size: 0.9rem;
+    }
+
+    /* FAQ Section */
+    .faq {
+      padding: 4rem 0;
+      background-color: #f5f5f5;
+    }
+
+    .faq-item {
+      background-color: white;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .faq-question {
+      padding: 1.25rem 1.5rem;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .faq-question:hover {
+      background-color: #f9f9f9;
+    }
+
+    .faq-answer {
+      padding: 0 1.5rem 1.25rem 1.5rem;
+      color: #666;
+      line-height: 1.7;
+    }
+
+    /* Footer */
+    footer {
+      background-color: #333;
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+    }
+
+    footer a {
+      color: #4CAF50;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h2 {
+        font-size: 2rem;
+      }
+
+      .hero p {
+        font-size: 1rem;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      header h1 {
+        font-size: 1.125rem;
+      }
+
+      header nav a {
+        margin-left: 1rem;
+        font-size: 0.875rem;
+      }
+    }
+
+    /* Placeholder image style */
+    .placeholder-image {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      text-align: center;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <h1>⏱️ Cyclocross Lap Time Converter</h1>
+      <nav>
+        <a href="#features">機能</a>
+        <a href="#screenshots">デモ</a>
+        <a href="#installation">インストール</a>
+        <a href="https://github.com/gentksb/ajocc-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h2>シクロクロスのラップタイム分析を<br>もっと簡単に</h2>
+      <p>経過時間を自動的にネットラップタイムに変換し、グラフで可視化するChrome拡張機能</p>
+      <div class="cta-buttons">
+        <a href="https://github.com/gentksb/ajocc-tools/releases" class="btn btn-primary" target="_blank">ダウンロード（GitHub Releases）</a>
+        <a href="#installation" class="btn btn-secondary">インストール方法を見る</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2 class="section-title">主な機能</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>ラップタイム自動変換</h3>
+          <p>経過時間（スプリットタイム）を自動的にネットラップタイムに変換。各周回の実タイムが一目でわかります。</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🏆</div>
+          <h3>ベストラップのハイライト</h3>
+          <p>各選手の最速ラップとレース全体の最速ラップを自動検出してハイライト表示。スタートループも賢く除外します。</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>グラフ表示機能</h3>
+          <p>ラップタイムの推移をグラフで可視化。複数選手を選択して比較でき、1周目の表示/非表示も切り替え可能です。</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>軽量・高速</h3>
+          <p>外部ライブラリに依存しない自作実装により、軽量で高速に動作します。ページの読み込みを遅くしません。</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3>ダークモード対応</h3>
+          <p>システムのダークモード設定に自動追従。夜間の利用時も目に優しい表示で快適に使えます。</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>レスポンシブ対応</h3>
+          <p>スマートフォンやタブレットでも快適に操作できるレスポンシブデザイン。モバイル環境でも分析が可能です。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots Section -->
+  <section id="screenshots" class="screenshots">
+    <div class="container">
+      <h2 class="section-title">スクリーンショット</h2>
+
+      <div class="screenshot-item">
+        <!--
+          必要な画像: screenshot-before-after.png
+          内容: 変換前と変換後のテーブル比較
+          - 左側: 経過時間（19:22.6, 29:20.6など）
+          - 右側: ネットラップタイム（9:54.5, 9:58.0など）
+          - 変換後のセルには緑色の背景と⏱アイコンが表示されている状態
+          推奨サイズ: 1200x600px
+        -->
+        <div class="placeholder-image">
+          スクリーンショット: 変換前後の比較<br>
+          (screenshot-before-after.png)
+        </div>
+        <div class="screenshot-caption">
+          <h3>📊 経過時間をネットラップタイムに変換</h3>
+          <p>リザルトページに表示される経過時間を、ワンクリックでネットラップタイムに自動変換。各周回の実際のタイムが一目でわかります。変換されたセルは緑色でハイライトされ、ホバーすると元の経過時間も確認できます。</p>
+        </div>
+      </div>
+
+      <div class="screenshot-item">
+        <!--
+          必要な画像: screenshot-best-lap.png
+          内容: ベストラップのハイライト表示
+          - 個人ベストラップ: 黄色背景 + ★アイコン
+          - レース全体ベストラップ: オレンジ背景 + 🏆アイコン
+          - 複数の選手のラップタイムが表示され、それぞれのベストが強調されている
+          推奨サイズ: 1200x600px
+        -->
+        <div class="placeholder-image">
+          スクリーンショット: ベストラップのハイライト<br>
+          (screenshot-best-lap.png)
+        </div>
+        <div class="screenshot-caption">
+          <h3>🏆 ベストラップを自動検出</h3>
+          <p>各選手の最速ラップを黄色で、レース全体の最速ラップをオレンジ色で自動ハイライト。スタートループは賢く検出して除外されるため、純粋な周回タイムでの比較が可能です。</p>
+        </div>
+      </div>
+
+      <div class="screenshot-item">
+        <!--
+          必要な画像: screenshot-graph.png
+          内容: グラフ表示機能の全体像
+          - 折れ線グラフで複数選手のラップタイム推移
+          - 異なる色で3〜5名の選手が表示されている
+          - グラフ下部に凡例
+          - X軸: 周回数、Y軸: タイム
+          推奨サイズ: 1200x700px
+        -->
+        <div class="placeholder-image">
+          スクリーンショット: グラフ表示機能<br>
+          (screenshot-graph.png)
+        </div>
+        <div class="screenshot-caption">
+          <h3>📈 ラップタイムをグラフで可視化</h3>
+          <p>複数の選手を選択して、ラップタイムの推移を折れ線グラフで比較できます。ペースの変化や、どの周回でタイム差がついたかが一目瞭然です。</p>
+        </div>
+      </div>
+
+      <div class="screenshot-item">
+        <!--
+          必要な画像: screenshot-controls.png
+          内容: グラフコントロールUI
+          - テーブル上部の説明セクション（💡 グラフ表示: ...）
+          - 選手名の左側にチェックボックス
+          - グラフコントロールエリア（1周目トグル、クイック選択ボタン）
+          - 「上位3名」「全選手」「すべて解除」ボタン
+          推奨サイズ: 1200x500px
+        -->
+        <div class="placeholder-image">
+          スクリーンショット: 選手選択とコントロール<br>
+          (screenshot-controls.png)
+        </div>
+        <div class="screenshot-caption">
+          <h3>🎛️ 直感的な操作</h3>
+          <p>選手名の左側のチェックボックスで表示したい選手を選択。「上位3名」「全選手」などのクイック選択ボタンで簡単に切り替えられます。1周目の表示/非表示もワンクリックで切り替え可能です。</p>
+        </div>
+      </div>
+
+      <div class="screenshot-item">
+        <!--
+          必要な画像: screenshot-install.png
+          内容: Chrome拡張機能のインストール画面
+          - chrome://extensions/ のページ
+          - デベロッパーモードがONになっている状態
+          - 「パッケージ化されていない拡張機能を読み込む」ボタンが強調されている
+          推奨サイズ: 1200x600px
+        -->
+        <div class="placeholder-image">
+          スクリーンショット: インストール方法<br>
+          (screenshot-install.png)
+        </div>
+        <div class="screenshot-caption">
+          <h3>⚙️ 簡単インストール</h3>
+          <p>数ステップでインストール完了。Chrome拡張機能ページから「パッケージ化されていない拡張機能を読み込む」を選択するだけです。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Installation Section -->
+  <section id="installation" class="installation">
+    <div class="container">
+      <h2 class="section-title">インストール方法</h2>
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>リポジトリをダウンロード</h3>
+            <p>GitHubリポジトリから最新版をクローンまたはZIPでダウンロードします。</p>
+            <p><code>git clone https://github.com/gentksb/ajocc-tools.git</code></p>
+          </div>
+        </div>
+
+        <div class="install-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Chrome拡張機能ページを開く</h3>
+            <p>Google Chromeを開き、アドレスバーに <code>chrome://extensions/</code> と入力してEnterキーを押します。</p>
+          </div>
+        </div>
+
+        <div class="install-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>デベロッパーモードをON</h3>
+            <p>右上の「デベロッパーモード」トグルをクリックしてONにします。</p>
+          </div>
+        </div>
+
+        <div class="install-step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>拡張機能を読み込む</h3>
+            <p>「パッケージ化されていない拡張機能を読み込む」をクリックし、<code>cyclocross-extension</code> フォルダを選択します。</p>
+          </div>
+        </div>
+
+        <div class="install-step">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <h3>完了！</h3>
+            <p><a href="https://data.cyclocross.jp/race/24830" target="_blank">シクロクロス公式リザルトページ</a>にアクセスして、自動的にラップタイムが変換されることを確認してください。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="faq">
+    <div class="container">
+      <h2 class="section-title">よくある質問</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          Q. どのブラウザで動作しますか？
+        </div>
+        <div class="faq-answer">
+          A. Google ChromeおよびMicrosoft Edge（Chromiumベース）で動作します。現在のところFirefoxには対応していません。
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          Q. 変換をOFFにすることはできますか？
+        </div>
+        <div class="faq-answer">
+          A. はい。ツールバーの拡張機能アイコンをクリックすることで、変換のON/OFFを切り替えられます。設定は保存されるため、次回アクセス時も維持されます。
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          Q. 元の経過時間を確認することはできますか？
+        </div>
+        <div class="faq-answer">
+          A. はい。変換されたセルにマウスをホバーすると、ツールチップで元の経過時間が表示されます。
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          Q. スタートループが短い大会ではどうなりますか？
+        </div>
+        <div class="faq-answer">
+          A. スタートループを自動検出し、ベストラップの判定から除外します。また、グラフ表示では「1周目を表示」チェックボックスで1周目を含めるか選択できます。
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          Q. バグを見つけた場合はどうすればいいですか？
+        </div>
+        <div class="faq-answer">
+          A. <a href="https://github.com/gentksb/ajocc-tools/issues" target="_blank">GitHub Issues</a> でバグ報告をお願いします。具体的なページのURLと、どのような問題が発生したかを記載していただけると助かります。
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          Q. 新機能のリクエストはできますか？
+        </div>
+        <div class="faq-answer">
+          A. はい。GitHub Issuesで機能要望を受け付けています。CSVエクスポート機能など、いくつかの機能を検討中です。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 <a href="https://github.com/gentksb" target="_blank">gentksb</a> | MIT License</p>
+      <p>
+        <a href="https://github.com/gentksb/ajocc-tools" target="_blank">GitHub</a> |
+        <a href="https://github.com/gentksb/ajocc-tools/issues" target="_blank">Issues</a> |
+        <a href="https://data.cyclocross.jp/" target="_blank">シクロクロス公式サイト</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
