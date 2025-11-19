@@ -341,16 +341,40 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* グラフ上部セクション */
+.lap-graph-top-section {
+  margin: 10px 0;
+  padding: 12px;
+  background-color: #f0f8ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 6px;
+}
+
+.lap-graph-top-section p {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: #333;
+  line-height: 1.6;
+}
+
 /* グラフコントロールエリア */
 .lap-graph-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 15px;
-  padding: 10px;
+  padding: 12px;
   background-color: #fff;
   border-radius: 4px;
   border: 1px solid #e0e0e0;
+}
+
+/* 左側のコントロール */
+.lap-graph-left-controls {
+  display: flex;
+  align-items: center;
 }
 
 /* 1周目トグル */
@@ -372,6 +396,42 @@
   font-size: 14px;
   font-weight: 500;
   color: #333;
+}
+
+/* クイック選択エリア */
+.lap-graph-quick-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* クイック選択ボタン */
+.lap-graph-quick-button {
+  padding: 6px 12px;
+  font-size: 13px;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+  color: #333;
+}
+
+.lap-graph-quick-button:hover {
+  background-color: #e0e0e0;
+  border-color: #999;
+}
+
+.lap-graph-quick-button:active {
+  background-color: #d0d0d0;
+}
+
+/* 右側のコントロール */
+.lap-graph-right-controls {
+  display: flex;
+  align-items: center;
 }
 
 /* 選手選択情報 */
@@ -400,7 +460,7 @@
 
 /* 選手選択チェックボックス */
 .rider-select-checkbox {
-  margin-left: 10px;
+  margin-right: 8px;
   cursor: pointer;
   width: 16px;
   height: 16px;
@@ -437,6 +497,15 @@
 
 /* ダークモード対応 */
 @media (prefers-color-scheme: dark) {
+  .lap-graph-top-section {
+    background-color: #2a3a4a;
+    border-color: #3a5a7a;
+  }
+
+  .lap-graph-top-section p {
+    color: #e0e0e0;
+  }
+
   .lap-graph-container {
     background-color: #2a2a2a;
     border-color: #444;
@@ -451,6 +520,25 @@
     color: #e0e0e0;
   }
 
+  .lap-graph-quick-select span {
+    color: #aaa;
+  }
+
+  .lap-graph-quick-button {
+    background-color: #444;
+    border-color: #666;
+    color: #e0e0e0;
+  }
+
+  .lap-graph-quick-button:hover {
+    background-color: #555;
+    border-color: #777;
+  }
+
+  .lap-graph-quick-button:active {
+    background-color: #4a4a4a;
+  }
+
   .lap-graph-selection-info {
     color: #aaa;
   }
@@ -462,6 +550,14 @@
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
+  .lap-graph-top-section {
+    padding: 10px;
+  }
+
+  .lap-graph-top-section p {
+    font-size: 12px;
+  }
+
   .lap-graph-container {
     padding: 15px;
   }
@@ -469,7 +565,22 @@
   .lap-graph-controls {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 12px;
+  }
+
+  .lap-graph-left-controls,
+  .lap-graph-quick-select,
+  .lap-graph-right-controls {
+    width: 100%;
+  }
+
+  .lap-graph-quick-select {
+    justify-content: flex-start;
+  }
+
+  .lap-graph-quick-button {
+    flex: 1;
+    min-width: 80px;
   }
 
   .lap-graph-canvas {
@@ -484,6 +595,10 @@
 
 /* プリント時 */
 @media print {
+  .lap-graph-top-section {
+    display: none;
+  }
+
   .lap-graph-toggle-button {
     display: none;
   }

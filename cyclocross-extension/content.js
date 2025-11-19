@@ -873,20 +873,100 @@ function createGraphContainer(table) {
   const controls = document.createElement('div');
   controls.className = 'lap-graph-controls';
 
-  // 1周目表示/非表示トグル
+  // 左側のコントロール（1周目トグル）
+  const leftControls = document.createElement('div');
+  leftControls.className = 'lap-graph-left-controls';
+
   const firstLapToggle = document.createElement('label');
   firstLapToggle.className = 'lap-graph-toggle';
   firstLapToggle.innerHTML = `
     <input type="checkbox" class="first-lap-toggle" checked>
     <span>1周目を表示</span>
   `;
-  controls.appendChild(firstLapToggle);
+  leftControls.appendChild(firstLapToggle);
+  controls.appendChild(leftControls);
 
-  // 選手選択情報
+  // 中央のコントロール（クイック選択ボタン）
+  const centerControls = document.createElement('div');
+  centerControls.className = 'lap-graph-quick-select';
+
+  const quickSelectLabel = document.createElement('span');
+  quickSelectLabel.textContent = 'クイック選択:';
+  quickSelectLabel.style.cssText = 'margin-right: 8px; font-size: 13px; color: #666;';
+  centerControls.appendChild(quickSelectLabel);
+
+  // 上位3名ボタン
+  const top3Button = document.createElement('button');
+  top3Button.className = 'lap-graph-quick-button';
+  top3Button.textContent = '上位3名';
+  top3Button.addEventListener('click', () => {
+    const graphData = graphDataMap.get(table);
+    if (!graphData) return;
+
+    // すべてのチェックボックスを解除
+    graphData.riders.forEach(rider => {
+      const checkbox = rider.row.querySelector('.rider-select-checkbox');
+      if (checkbox) checkbox.checked = false;
+    });
+
+    // 上位3名（最初の3名）をチェック
+    graphData.riders.slice(0, 3).forEach(rider => {
+      const checkbox = rider.row.querySelector('.rider-select-checkbox');
+      if (checkbox) checkbox.checked = true;
+    });
+
+    updateGraph(table);
+  });
+  centerControls.appendChild(top3Button);
+
+  // 全選手ボタン
+  const allButton = document.createElement('button');
+  allButton.className = 'lap-graph-quick-button';
+  allButton.textContent = '全選手';
+  allButton.addEventListener('click', () => {
+    const graphData = graphDataMap.get(table);
+    if (!graphData) return;
+
+    // すべてのチェックボックスをチェック
+    graphData.riders.forEach(rider => {
+      const checkbox = rider.row.querySelector('.rider-select-checkbox');
+      if (checkbox) checkbox.checked = true;
+    });
+
+    updateGraph(table);
+  });
+  centerControls.appendChild(allButton);
+
+  // すべて解除ボタン
+  const clearButton = document.createElement('button');
+  clearButton.className = 'lap-graph-quick-button';
+  clearButton.textContent = 'すべて解除';
+  clearButton.addEventListener('click', () => {
+    const graphData = graphDataMap.get(table);
+    if (!graphData) return;
+
+    // すべてのチェックボックスを解除
+    graphData.riders.forEach(rider => {
+      const checkbox = rider.row.querySelector('.rider-select-checkbox');
+      if (checkbox) checkbox.checked = false;
+    });
+
+    updateGraph(table);
+  });
+  centerControls.appendChild(clearButton);
+
+  controls.appendChild(centerControls);
+
+  // 右側のコントロール（選手選択情報）
+  const rightControls = document.createElement('div');
+  rightControls.className = 'lap-graph-right-controls';
+
   const selectionInfo = document.createElement('div');
   selectionInfo.className = 'lap-graph-selection-info';
   selectionInfo.textContent = '選手を選択してグラフに表示';
-  controls.appendChild(selectionInfo);
+  rightControls.appendChild(selectionInfo);
+
+  controls.appendChild(rightControls);
 
   container.appendChild(controls);
 
@@ -949,29 +1029,35 @@ function addRiderCheckboxes(table) {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.className = 'rider-select-checkbox';
-    checkbox.style.marginLeft = '10px';
+    checkbox.style.marginRight = '8px';
     checkbox.style.cursor = 'pointer';
+    checkbox.style.verticalAlign = 'middle';
 
-    // チェック状態変更時にグラフを更新
+    // チェック状態変更時にグラフを更新し、自動展開
     checkbox.addEventListener('change', () => {
+      const container = table.parentElement.querySelector('.lap-graph-container');
+      const buttons = table.parentElement.querySelectorAll('.lap-graph-toggle-button');
+
+      // チェックがついたら自動的にグラフを表示
+      if (checkbox.checked && container && container.style.display === 'none') {
+        container.style.display = 'block';
+        buttons.forEach(btn => btn.textContent = '📊 グラフを非表示');
+      }
+
       updateGraph(table);
     });
 
-    // 選手名セルに追加
+    // 選手名セルの先頭に追加
     const nameCell = rider.row.querySelector('td:nth-child(2)');
     if (nameCell) {
-      nameCell.appendChild(checkbox);
+      // セルの最初の子要素の前に挿入
+      nameCell.insertBefore(checkbox, nameCell.firstChild);
     }
   });
 }
 
-// グラフボタンを追加
-function addGraphButton(table) {
-  // 既にボタンがある場合はスキップ
-  const existingButton = table.parentElement.querySelector('.lap-graph-toggle-button');
-  if (existingButton) return;
-
-  // ボタンを作成
+// グラフボタンを作成（共通関数）
+function createGraphToggleButton(table, isTopButton = false) {
   const button = document.createElement('button');
   button.className = 'lap-graph-toggle-button';
   button.textContent = '📊 グラフを表示';
@@ -1001,23 +1087,68 @@ function addGraphButton(table) {
     if (!container) return;
 
     const isVisible = container.style.display !== 'none';
+    const allButtons = table.parentElement.querySelectorAll('.lap-graph-toggle-button');
 
     if (isVisible) {
       // 非表示にする
       container.style.display = 'none';
-      button.textContent = '📊 グラフを表示';
+      allButtons.forEach(btn => btn.textContent = '📊 グラフを表示');
     } else {
       // 表示する
       container.style.display = 'block';
-      button.textContent = '📊 グラフを非表示';
+      allButtons.forEach(btn => btn.textContent = '📊 グラフを非表示');
       updateGraph(table);
+
+      // 下部ボタンの場合はグラフまでスクロール
+      if (!isTopButton) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
     }
   });
 
-  // テーブルの後に挿入
+  return button;
+}
+
+// グラフボタンを追加
+function addGraphButton(table) {
+  // 既にボタンがある場合はスキップ
+  const existingButton = table.parentElement.querySelector('.lap-graph-toggle-button');
+  if (existingButton) return;
+
+  // テーブル上部に説明付きボタンを追加
+  const topSection = document.createElement('div');
+  topSection.className = 'lap-graph-top-section';
+  topSection.style.cssText = `
+    margin: 10px 0;
+    padding: 12px;
+    background-color: #f0f8ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 6px;
+  `;
+
+  const description = document.createElement('p');
+  description.style.cssText = `
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    color: #333;
+    line-height: 1.6;
+  `;
+  description.innerHTML = '<strong>💡 グラフ表示:</strong> 選手名の左側のチェックボックスを選択すると、ラップタイムの推移をグラフで比較できます';
+
+  const topButton = createGraphToggleButton(table, true);
+  topSection.appendChild(description);
+  topSection.appendChild(topButton);
+
+  // テーブルの前に挿入
+  table.parentElement.insertBefore(topSection, table);
+
+  // テーブル下部にもボタンを追加
+  const bottomButton = createGraphToggleButton(table, false);
+
+  // グラフコンテナを作成
   const graphContainer = createGraphContainer(table);
-  table.parentElement.insertBefore(button, table.nextSibling);
-  table.parentElement.insertBefore(graphContainer, button.nextSibling);
+  table.parentElement.insertBefore(bottomButton, table.nextSibling);
+  table.parentElement.insertBefore(graphContainer, bottomButton.nextSibling);
 
   // 選手選択チェックボックスを追加
   addRiderCheckboxes(table);
