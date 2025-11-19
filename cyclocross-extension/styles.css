@@ -11,17 +11,21 @@
   transition: all 0.2s ease;
 }
 
-/* 選手の個人ベストラップ */
-.converted-lap-time.rider-best-lap {
+/* 選手の個人ベストラップ（変換済み/未変換問わず適用） */
+.rider-best-lap {
   background-color: #fff9c4 !important;
+  position: relative;
   font-weight: 600;
+  transition: all 0.2s ease;
 }
 
-/* レース全体のベストラップ */
-.converted-lap-time.overall-best-lap {
+/* レース全体のベストラップ（変換済み/未変換問わず適用） */
+.overall-best-lap {
   background-color: #ffccbc !important;
+  position: relative;
   font-weight: 700;
   box-shadow: 0 0 8px rgba(255, 87, 34, 0.4);
+  transition: all 0.2s ease;
 }
 
 /* ダークモード対応 */
@@ -31,12 +35,12 @@
     color: #e8f5e9 !important;
   }
 
-  .converted-lap-time.rider-best-lap {
+  .rider-best-lap {
     background-color: #f57f17 !important;
     color: #fff !important;
   }
 
-  .converted-lap-time.overall-best-lap {
+  .overall-best-lap {
     background-color: #d84315 !important;
     color: #fff !important;
     box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
@@ -49,12 +53,14 @@
   cursor: help;
 }
 
-.converted-lap-time.rider-best-lap:hover {
+.rider-best-lap:hover {
   background-color: #fff59d !important;
+  cursor: help;
 }
 
-.converted-lap-time.overall-best-lap:hover {
+.overall-best-lap:hover {
   background-color: #ff9e80 !important;
+  cursor: help;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -62,11 +68,11 @@
     background-color: #2e7d32 !important;
   }
 
-  .converted-lap-time.rider-best-lap:hover {
+  .rider-best-lap:hover {
     background-color: #fbc02d !important;
   }
 
-  .converted-lap-time.overall-best-lap:hover {
+  .overall-best-lap:hover {
     background-color: #f4511e !important;
   }
 }
@@ -82,16 +88,22 @@
 }
 
 /* 選手の個人ベストラップアイコン */
-.converted-lap-time.rider-best-lap::after {
+.rider-best-lap::after {
   content: "★";
+  position: absolute;
+  top: 2px;
+  right: 2px;
   font-size: 12px;
   opacity: 0.8;
   color: #f57f17;
 }
 
 /* レース全体のベストラップアイコン */
-.converted-lap-time.overall-best-lap::after {
+.overall-best-lap::after {
   content: "🏆";
+  position: absolute;
+  top: 2px;
+  right: 2px;
   font-size: 12px;
   opacity: 1;
 }
@@ -116,20 +128,63 @@
   margin-bottom: 5px;
 }
 
-/* 選手の個人ベストラップのツールチップ */
+/* 選手の個人ベストラップのツールチップ（変換済み） */
 .converted-lap-time.rider-best-lap::before {
   content: "★ 個人ベストラップ | 元: " attr(data-original-time);
   background-color: rgba(245, 127, 23, 0.95);
 }
 
-/* レース全体のベストラップのツールチップ */
+/* レース全体のベストラップのツールチップ（変換済み） */
 .converted-lap-time.overall-best-lap::before {
   content: "🏆 レース最速ラップ | 元: " attr(data-original-time);
   background-color: rgba(216, 67, 21, 0.95);
   font-weight: 600;
 }
 
-.converted-lap-time:hover::before {
+/* 選手の個人ベストラップのツールチップ（未変換、1周目など） */
+.rider-best-lap:not(.converted-lap-time)::before {
+  content: "★ 個人ベストラップ";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(245, 127, 23, 0.95);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  margin-bottom: 5px;
+}
+
+/* レース全体のベストラップのツールチップ（未変換、1周目など） */
+.overall-best-lap:not(.converted-lap-time)::before {
+  content: "🏆 レース最速ラップ";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(216, 67, 21, 0.95);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.converted-lap-time:hover::before,
+.rider-best-lap:hover::before,
+.overall-best-lap:hover::before {
   opacity: 1;
 }
 
