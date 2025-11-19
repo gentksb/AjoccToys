@@ -21,7 +21,7 @@ function parseTimeToMs(timeStr) {
     { regex: /^(\d+):(\d{2}):(\d{2})\.(\d{3})$/, type: 'HMS_D3' },
     // HH:MM:SS
     { regex: /^(\d+):(\d{2}):(\d{2})$/, type: 'HMS' },
-    // MM:SS.d (小数点第1位) ← これが実際のページで使われている
+    // MM:SS.d (小数点第1位) ← 1分以上のラップで使われる
     { regex: /^(\d+):(\d{2})\.(\d)$/, type: 'MS_D1' },
     // MM:SS.dd (小数点第2位)
     { regex: /^(\d+):(\d{2})\.(\d{2})$/, type: 'MS_D2' },
@@ -29,6 +29,14 @@ function parseTimeToMs(timeStr) {
     { regex: /^(\d+):(\d{2})\.(\d{3})$/, type: 'MS_D3' },
     // MM:SS
     { regex: /^(\d+):(\d{2})$/, type: 'MS' },
+    // SS.d (秒のみ、小数点第1位) ← スタートループなど1分未満で使われる
+    { regex: /^(\d{1,2})\.(\d)$/, type: 'S_D1' },
+    // SS.dd (秒のみ、小数点第2位)
+    { regex: /^(\d{1,2})\.(\d{2})$/, type: 'S_D2' },
+    // SS.ddd (秒のみ、小数点第3位)
+    { regex: /^(\d{1,2})\.(\d{3})$/, type: 'S_D3' },
+    // SS (秒のみ)
+    { regex: /^(\d{1,2})$/, type: 'S' },
   ];
 
   for (const { regex, type } of patterns) {
@@ -91,6 +99,29 @@ function parseTimeToMs(timeStr) {
           const seconds = parseInt(match[2], 10);
           return (minutes * 60 + seconds) * 1000;
         }
+        case 'S_D1': {
+          // SS.d → 秒のみ、1/10秒 = 100ms
+          const seconds = parseInt(match[1], 10);
+          const deciseconds = parseInt(match[2], 10);
+          return seconds * 1000 + deciseconds * 100;
+        }
+        case 'S_D2': {
+          // SS.dd → 秒のみ、1/100秒 = 10ms
+          const seconds = parseInt(match[1], 10);
+          const centiseconds = parseInt(match[2], 10);
+          return seconds * 1000 + centiseconds * 10;
+        }
+        case 'S_D3': {
+          // SS.ddd → 秒のみ、ミリ秒
+          const seconds = parseInt(match[1], 10);
+          const ms = parseInt(match[2], 10);
+          return seconds * 1000 + ms;
+        }
+        case 'S': {
+          // SS → 秒のみ
+          const seconds = parseInt(match[1], 10);
+          return seconds * 1000;
+        }
       }
     }
   }
@@ -113,8 +144,11 @@ function formatMsToTime(ms, includeDecimal = true) {
   let result = '';
   if (hours > 0) {
     result = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  } else {
+  } else if (minutes > 0) {
     result = `${minutes}:${String(seconds).padStart(2, '0')}`;
+  } else {
+    // 秒のみ（1分未満）
+    result = `${seconds}`;
   }
 
   if (includeDecimal) {
