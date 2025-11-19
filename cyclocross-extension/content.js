@@ -157,23 +157,20 @@ function getLapTimeColumnIndices(table) {
   headers.forEach((header, index) => {
     const headerText = header.textContent.trim();
 
-    // cell__lapat クラスを持つか、「周」を含むヘッダーを探す
-    if (header.classList.contains('cell__lapat') || /\d+周/.test(headerText)) {
+    // スタートループかどうかを先に判定
+    const isStartLoop =
+      /start\s*loop/i.test(headerText) ||
+      /スタートループ/.test(headerText) ||
+      /^0周/.test(headerText) ||
+      /^0\s*lap/i.test(headerText) ||
+      /^lap\s*0/i.test(headerText);
+
+    // cell__lapat クラスを持つか、「周」を含むヘッダー、またはスタートループを探す
+    if (header.classList.contains('cell__lapat') || /\d+周/.test(headerText) || isStartLoop) {
       lapColumnIndices.push(index);
 
       // スタートループを検出（複数のパターンに対応）
-      // - "StartLoop" (大文字小文字問わず)
-      // - "Start Loop" (スペース入り)
-      // - "スタートループ"
-      // - "0周" (念のため)
-      // - "0lap", "Lap 0" など
-      if (
-        /start\s*loop/i.test(headerText) ||
-        /スタートループ/.test(headerText) ||
-        /^0周/.test(headerText) ||
-        /^0\s*lap/i.test(headerText) ||
-        /^lap\s*0/i.test(headerText)
-      ) {
+      if (isStartLoop) {
         startLoopIndex = lapColumnIndices.length - 1; // lapColumnIndices内でのインデックス
         console.log(`スタートループを検出: 列${index} (ヘッダー: "${headerText}", ラップインデックス: ${startLoopIndex})`);
       }
