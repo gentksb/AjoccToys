@@ -85,6 +85,11 @@
   animation: slideDown 0.3s ease;
 }
 
+/* 情報通知（OFF時など） */
+.lap-time-converter-banner.banner-info {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+}
+
 @keyframes slideDown {
   from {
     transform: translateY(-100%);

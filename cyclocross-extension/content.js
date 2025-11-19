@@ -371,22 +371,122 @@ function main() {
   console.log('=====================================\n');
 }
 
+// グローバル変数: ON/OFF状態
+let isEnabled = true;
+
+// 変換を元に戻す関数
+function revertConversion() {
+  console.log('=== 変換を元に戻します ===');
+
+  // 変換済みのセルを元に戻す
+  const convertedCells = document.querySelectorAll('[data-converted="true"]');
+  let revertedCount = 0;
+
+  convertedCells.forEach(cell => {
+    const originalTime = cell.getAttribute('data-original-time');
+    if (originalTime) {
+      // div.text-right 要素を探す
+      const textDiv = cell.querySelector('div.text-right, div');
+      const targetElement = textDiv || cell;
+
+      // 元の値に戻す
+      targetElement.textContent = originalTime;
+
+      // クラスと属性を削除
+      cell.classList.remove('converted-lap-time');
+      cell.removeAttribute('data-original-time');
+      cell.removeAttribute('data-converted');
+
+      revertedCount++;
+    }
+  });
+
+  // 変換済みテーブルのマーキングを削除
+  const convertedTables = document.querySelectorAll('.lap-time-converted-table');
+  convertedTables.forEach(table => {
+    table.classList.remove('lap-time-converted-table');
+  });
+
+  // 通知バナーを削除
+  const banner = document.getElementById('lap-time-converter-banner');
+  if (banner) {
+    banner.remove();
+  }
+
+  console.log(`${revertedCount}個のセルを元に戻しました`);
+  console.log('=====================================\n');
+
+  // OFF通知を表示
+  showNotification('ラップタイム変換をOFFにしました', 'info');
+}
+
 // 初期化
-function initialize() {
-  // ページの読み込み状態に応じて実行
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', main);
-  } else {
-    // すでに読み込まれている場合は少し遅延させて実行
-    setTimeout(main, 100);
+async function initialize() {
+  try {
+    // ストレージから設定を取得
+    const result = await chrome.storage.local.get(['settings']);
+    const settings = result.settings || { enabled: true };
+    isEnabled = settings.enabled;
+
+    console.log('設定を読み込みました。変換:', isEnabled ? 'ON' : 'OFF');
+
+    if (!isEnabled) {
+      console.log('変換がOFFのため、処理をスキップします');
+      return;
+    }
+
+    // ページの読み込み状態に応じて実行
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', main);
+    } else {
+      // すでに読み込まれている場合は少し遅延させて実行
+      setTimeout(main, 100);
+    }
+  } catch (error) {
+    console.error('設定の読み込みに失敗しました:', error);
+    // エラーが発生してもデフォルトで実行
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', main);
+    } else {
+      setTimeout(main, 100);
+    }
   }
 }
 
 // 拡張機能の起動
 initialize();
 
+// background.jsからのメッセージを受信
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('メッセージを受信しました:', message);
+
+  if (message.action === 'toggleConversion') {
+    const newEnabled = message.enabled;
+    console.log(`変換を${newEnabled ? 'ON' : 'OFF'}に切り替えます`);
+
+    isEnabled = newEnabled;
+
+    if (newEnabled) {
+      // ONにする: 変換を実行
+      main();
+    } else {
+      // OFFにする: 変換を元に戻す
+      revertConversion();
+    }
+
+    sendResponse({ success: true });
+  }
+
+  return true; // 非同期レスポンスを有効にする
+});
+
 // 動的に追加されるコンテンツに対応（念のため）
 const observer = new MutationObserver((mutations) => {
+  // OFFの場合は何もしない
+  if (!isEnabled) {
+    return;
+  }
+
   let hasNewTable = false;
 
   mutations.forEach((mutation) => {
