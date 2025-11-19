@@ -9,25 +9,50 @@ function parseTimeToMs(timeStr) {
     return null;
   }
 
-  // MM:SS.mmm または MM:SS または HH:MM:SS 形式に対応
+  const trimmed = timeStr.trim();
+
+  // 各種時間フォーマットに対応
   const patterns = [
-    // HH:MM:SS.mmm
-    { regex: /^(\d+):(\d{2}):(\d{2})\.(\d{3})$/, type: 'HMS_MS' },
+    // HH:MM:SS.d (小数点第1位)
+    { regex: /^(\d+):(\d{2}):(\d{2})\.(\d)$/, type: 'HMS_D1' },
+    // HH:MM:SS.dd (小数点第2位)
+    { regex: /^(\d+):(\d{2}):(\d{2})\.(\d{2})$/, type: 'HMS_D2' },
+    // HH:MM:SS.ddd (小数点第3位、ミリ秒)
+    { regex: /^(\d+):(\d{2}):(\d{2})\.(\d{3})$/, type: 'HMS_D3' },
     // HH:MM:SS
     { regex: /^(\d+):(\d{2}):(\d{2})$/, type: 'HMS' },
-    // MM:SS.mmm
-    { regex: /^(\d+):(\d{2})\.(\d{3})$/, type: 'MS_MS' },
+    // MM:SS.d (小数点第1位) ← これが実際のページで使われている
+    { regex: /^(\d+):(\d{2})\.(\d)$/, type: 'MS_D1' },
+    // MM:SS.dd (小数点第2位)
+    { regex: /^(\d+):(\d{2})\.(\d{2})$/, type: 'MS_D2' },
+    // MM:SS.ddd (小数点第3位、ミリ秒)
+    { regex: /^(\d+):(\d{2})\.(\d{3})$/, type: 'MS_D3' },
     // MM:SS
     { regex: /^(\d+):(\d{2})$/, type: 'MS' },
   ];
-
-  const trimmed = timeStr.trim();
 
   for (const { regex, type } of patterns) {
     const match = trimmed.match(regex);
     if (match) {
       switch (type) {
-        case 'HMS_MS': {
+        case 'HMS_D1': {
+          // HH:MM:SS.d → 1/10秒 = 100ms
+          const hours = parseInt(match[1], 10);
+          const minutes = parseInt(match[2], 10);
+          const seconds = parseInt(match[3], 10);
+          const deciseconds = parseInt(match[4], 10);
+          return (hours * 3600 + minutes * 60 + seconds) * 1000 + deciseconds * 100;
+        }
+        case 'HMS_D2': {
+          // HH:MM:SS.dd → 1/100秒 = 10ms
+          const hours = parseInt(match[1], 10);
+          const minutes = parseInt(match[2], 10);
+          const seconds = parseInt(match[3], 10);
+          const centiseconds = parseInt(match[4], 10);
+          return (hours * 3600 + minutes * 60 + seconds) * 1000 + centiseconds * 10;
+        }
+        case 'HMS_D3': {
+          // HH:MM:SS.ddd → ミリ秒
           const hours = parseInt(match[1], 10);
           const minutes = parseInt(match[2], 10);
           const seconds = parseInt(match[3], 10);
@@ -40,7 +65,22 @@ function parseTimeToMs(timeStr) {
           const seconds = parseInt(match[3], 10);
           return (hours * 3600 + minutes * 60 + seconds) * 1000;
         }
-        case 'MS_MS': {
+        case 'MS_D1': {
+          // MM:SS.d → 1/10秒 = 100ms ← 実際のページで使用
+          const minutes = parseInt(match[1], 10);
+          const seconds = parseInt(match[2], 10);
+          const deciseconds = parseInt(match[3], 10);
+          return (minutes * 60 + seconds) * 1000 + deciseconds * 100;
+        }
+        case 'MS_D2': {
+          // MM:SS.dd → 1/100秒 = 10ms
+          const minutes = parseInt(match[1], 10);
+          const seconds = parseInt(match[2], 10);
+          const centiseconds = parseInt(match[3], 10);
+          return (minutes * 60 + seconds) * 1000 + centiseconds * 10;
+        }
+        case 'MS_D3': {
+          // MM:SS.ddd → ミリ秒
           const minutes = parseInt(match[1], 10);
           const seconds = parseInt(match[2], 10);
           const ms = parseInt(match[3], 10);
