@@ -1036,12 +1036,14 @@ function addRiderCheckboxes(table) {
     // チェック状態変更時にグラフを更新し、自動展開
     checkbox.addEventListener('change', () => {
       const container = table.parentElement.querySelector('.lap-graph-container');
-      const buttons = table.parentElement.querySelectorAll('.lap-graph-toggle-button');
+      const toggleButton = table.parentElement.querySelector('.lap-graph-toggle-button');
 
       // チェックがついたら自動的にグラフを表示
       if (checkbox.checked && container && container.style.display === 'none') {
         container.style.display = 'block';
-        buttons.forEach(btn => btn.textContent = '📊 グラフを非表示');
+        if (toggleButton) {
+          toggleButton.textContent = '📊 グラフを非表示';
+        }
       }
 
       updateGraph(table);
@@ -1056,8 +1058,55 @@ function addRiderCheckboxes(table) {
   });
 }
 
-// グラフボタンを作成（共通関数）
-function createGraphToggleButton(table, isTopButton = false) {
+// グラフに移動するボタンを作成（上部用）
+function createScrollToGraphButton(table) {
+  const button = document.createElement('button');
+  button.className = 'lap-graph-scroll-button';
+  button.textContent = '⬇️ グラフに移動';
+  button.style.cssText = `
+    margin: 10px 0;
+    padding: 10px 20px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  `;
+
+  button.addEventListener('mouseenter', () => {
+    button.style.backgroundColor = '#1976D2';
+  });
+
+  button.addEventListener('mouseleave', () => {
+    button.style.backgroundColor = '#2196F3';
+  });
+
+  button.addEventListener('click', () => {
+    const container = table.parentElement.querySelector('.lap-graph-container');
+    if (!container) return;
+
+    // グラフが非表示の場合は表示する
+    if (container.style.display === 'none') {
+      container.style.display = 'block';
+      const toggleButton = table.parentElement.querySelector('.lap-graph-toggle-button');
+      if (toggleButton) {
+        toggleButton.textContent = '📊 グラフを非表示';
+      }
+      updateGraph(table);
+    }
+
+    // グラフまでスクロール
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  return button;
+}
+
+// グラフ表示/非表示トグルボタンを作成（下部用）
+function createGraphToggleButton(table) {
   const button = document.createElement('button');
   button.className = 'lap-graph-toggle-button';
   button.textContent = '📊 グラフを表示';
@@ -1087,22 +1136,19 @@ function createGraphToggleButton(table, isTopButton = false) {
     if (!container) return;
 
     const isVisible = container.style.display !== 'none';
-    const allButtons = table.parentElement.querySelectorAll('.lap-graph-toggle-button');
 
     if (isVisible) {
       // 非表示にする
       container.style.display = 'none';
-      allButtons.forEach(btn => btn.textContent = '📊 グラフを表示');
+      button.textContent = '📊 グラフを表示';
     } else {
       // 表示する
       container.style.display = 'block';
-      allButtons.forEach(btn => btn.textContent = '📊 グラフを非表示');
+      button.textContent = '📊 グラフを非表示';
       updateGraph(table);
 
-      // 下部ボタンの場合はグラフまでスクロール
-      if (!isTopButton) {
-        container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      // グラフまでスクロール
+      container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   });
 
@@ -1135,7 +1181,7 @@ function addGraphButton(table) {
   `;
   description.innerHTML = '<strong>💡 グラフ表示:</strong> 選手名の左側のチェックボックスを選択すると、ラップタイムの推移をグラフで比較できます';
 
-  const topButton = createGraphToggleButton(table, true);
+  const topButton = createScrollToGraphButton(table);
   topSection.appendChild(description);
   topSection.appendChild(topButton);
 
@@ -1143,7 +1189,7 @@ function addGraphButton(table) {
   table.parentElement.insertBefore(topSection, table);
 
   // テーブル下部にもボタンを追加
-  const bottomButton = createGraphToggleButton(table, false);
+  const bottomButton = createGraphToggleButton(table);
 
   // グラフコンテナを作成
   const graphContainer = createGraphContainer(table);
