@@ -189,6 +189,9 @@ function convertLapTimesInTable(table) {
 
   console.log(`  tbody内の行数: ${rows.length}`);
 
+  // 全選手のラップタイムを保存（ベストラップ検出用）
+  const allLapTimes = []; // [{ cell, netLapTime, lapIndex, rowIndex }, ...]
+
   rows.forEach((row, rowIndex) => {
     const cells = Array.from(row.querySelectorAll('td'));
 
@@ -236,6 +239,8 @@ function convertLapTimesInTable(table) {
 
     // 経過時間からネットラップタイムに変換
     let prevMs = 0;
+    const riderLapTimes = []; // この選手のラップタイム（ベストラップ検出用）
+
     lapData.forEach(({ cell, textDiv, ms, original }, lapIndex) => {
       if (ms !== null && ms > 0) {
         const netLapTime = ms - prevMs;
@@ -262,12 +267,17 @@ function convertLapTimesInTable(table) {
           // 元の値をdata属性に保存
           cell.setAttribute('data-original-time', original);
           cell.setAttribute('data-converted', 'true');
+          cell.setAttribute('data-net-lap-time', netLapTime.toString()); // ベストラップ検出用
 
           // テキストを更新
           targetElement.textContent = newTimeStr;
 
           // クラスを追加
           cell.classList.add('converted-lap-time');
+
+          // ラップタイムを記録
+          riderLapTimes.push({ cell, netLapTime, lapIndex });
+          allLapTimes.push({ cell, netLapTime, lapIndex, rowIndex });
 
           convertedCount++;
 
@@ -283,7 +293,34 @@ function convertLapTimesInTable(table) {
         prevMs = ms;
       }
     });
+
+    // この選手のベストラップを検出
+    if (riderLapTimes.length > 0) {
+      const minLapTime = Math.min(...riderLapTimes.map(lt => lt.netLapTime));
+      riderLapTimes.forEach(({ cell, netLapTime }) => {
+        if (netLapTime === minLapTime) {
+          cell.classList.add('rider-best-lap');
+          cell.setAttribute('data-rider-best', 'true');
+        }
+      });
+    }
   });
+
+  // レース全体のベストラップを検出
+  if (allLapTimes.length > 0) {
+    const overallBestLapTime = Math.min(...allLapTimes.map(lt => lt.netLapTime));
+    let bestLapCount = 0;
+
+    allLapTimes.forEach(({ cell, netLapTime }) => {
+      if (netLapTime === overallBestLapTime) {
+        cell.classList.add('overall-best-lap');
+        cell.setAttribute('data-overall-best', 'true');
+        bestLapCount++;
+      }
+    });
+
+    console.log(`  ベストラップ: ${formatMsToTime(overallBestLapTime, true)} (${bestLapCount}箇所)`);
+  }
 
   if (convertedCount > 0) {
     console.log(`${convertedCount}個のラップタイムを変換しました`);
@@ -394,8 +431,13 @@ function revertConversion() {
 
       // クラスと属性を削除
       cell.classList.remove('converted-lap-time');
+      cell.classList.remove('rider-best-lap');
+      cell.classList.remove('overall-best-lap');
       cell.removeAttribute('data-original-time');
       cell.removeAttribute('data-converted');
+      cell.removeAttribute('data-net-lap-time');
+      cell.removeAttribute('data-rider-best');
+      cell.removeAttribute('data-overall-best');
 
       revertedCount++;
     }

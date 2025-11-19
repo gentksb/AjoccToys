@@ -11,11 +11,35 @@
   transition: all 0.2s ease;
 }
 
+/* 選手の個人ベストラップ */
+.converted-lap-time.rider-best-lap {
+  background-color: #fff9c4 !important;
+  font-weight: 600;
+}
+
+/* レース全体のベストラップ */
+.converted-lap-time.overall-best-lap {
+  background-color: #ffccbc !important;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(255, 87, 34, 0.4);
+}
+
 /* ダークモード対応 */
 @media (prefers-color-scheme: dark) {
   .converted-lap-time {
     background-color: #1b5e20 !important;
     color: #e8f5e9 !important;
+  }
+
+  .converted-lap-time.rider-best-lap {
+    background-color: #f57f17 !important;
+    color: #fff !important;
+  }
+
+  .converted-lap-time.overall-best-lap {
+    background-color: #d84315 !important;
+    color: #fff !important;
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
   }
 }
 
@@ -25,9 +49,25 @@
   cursor: help;
 }
 
+.converted-lap-time.rider-best-lap:hover {
+  background-color: #fff59d !important;
+}
+
+.converted-lap-time.overall-best-lap:hover {
+  background-color: #ff9e80 !important;
+}
+
 @media (prefers-color-scheme: dark) {
   .converted-lap-time:hover {
     background-color: #2e7d32 !important;
+  }
+
+  .converted-lap-time.rider-best-lap:hover {
+    background-color: #fbc02d !important;
+  }
+
+  .converted-lap-time.overall-best-lap:hover {
+    background-color: #f4511e !important;
   }
 }
 
@@ -39,6 +79,21 @@
   right: 2px;
   font-size: 10px;
   opacity: 0.6;
+}
+
+/* 選手の個人ベストラップアイコン */
+.converted-lap-time.rider-best-lap::after {
+  content: "★";
+  font-size: 12px;
+  opacity: 0.8;
+  color: #f57f17;
+}
+
+/* レース全体のベストラップアイコン */
+.converted-lap-time.overall-best-lap::after {
+  content: "🏆";
+  font-size: 12px;
+  opacity: 1;
 }
 
 /* ツールチップ（元の値を表示） */
@@ -59,6 +114,19 @@
   transition: opacity 0.2s ease;
   z-index: 1000;
   margin-bottom: 5px;
+}
+
+/* 選手の個人ベストラップのツールチップ */
+.converted-lap-time.rider-best-lap::before {
+  content: "★ 個人ベストラップ | 元: " attr(data-original-time);
+  background-color: rgba(245, 127, 23, 0.95);
+}
+
+/* レース全体のベストラップのツールチップ */
+.converted-lap-time.overall-best-lap::before {
+  content: "🏆 レース最速ラップ | 元: " attr(data-original-time);
+  background-color: rgba(216, 67, 21, 0.95);
+  font-weight: 600;
 }
 
 .converted-lap-time:hover::before {
