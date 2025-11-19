@@ -515,6 +515,9 @@ function main() {
     if (converted) {
       totalConverted = true;
       console.log(`  ✓ テーブル ${index + 1} の変換に成功しました`);
+
+      // グラフボタンを追加
+      addGraphButton(table);
     } else {
       console.log(`  - テーブル ${index + 1} はスキップされました`);
     }
@@ -674,3 +677,356 @@ observer.observe(document.body, {
   childList: true,
   subtree: true
 });
+
+// ============================================
+// グラフ機能
+// ============================================
+
+// Canvas折れ線グラフ描画関数
+function drawLineGraph(canvas, riders, options = {}) {
+  const {
+    skipFirstLap = false,
+    width = 800,
+    height = 400,
+    padding = { top: 40, right: 20, bottom: 60, left: 80 }
+  } = options;
+
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  // 背景をクリア
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+
+  if (riders.length === 0) {
+    ctx.fillStyle = '#666';
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('選手を選択してください', width / 2, height / 2);
+    return;
+  }
+
+  // データ範囲を計算
+  let maxLaps = 0;
+  let maxTime = 0;
+  let minTime = Infinity;
+
+  riders.forEach(rider => {
+    const times = skipFirstLap ? rider.lapTimes.slice(1) : rider.lapTimes;
+    maxLaps = Math.max(maxLaps, times.length);
+    times.forEach(time => {
+      maxTime = Math.max(maxTime, time);
+      minTime = Math.min(minTime, time);
+    });
+  });
+
+  if (maxLaps === 0) {
+    ctx.fillStyle = '#666';
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('表示するデータがありません', width / 2, height / 2);
+    return;
+  }
+
+  // グラフエリアの計算
+  const graphWidth = width - padding.left - padding.right;
+  const graphHeight = height - padding.top - padding.bottom;
+  const graphX = padding.left;
+  const graphY = padding.top;
+
+  // スケール計算
+  const timeRange = maxTime - minTime;
+  const timePadding = timeRange * 0.1; // 上下に10%のパディング
+  const yMin = Math.max(0, minTime - timePadding);
+  const yMax = maxTime + timePadding;
+
+  const xScale = graphWidth / (maxLaps - 1 || 1);
+  const yScale = graphHeight / (yMax - yMin);
+
+  // 座標変換関数
+  const toX = (lapIndex) => graphX + lapIndex * xScale;
+  const toY = (time) => graphY + graphHeight - (time - yMin) * yScale;
+
+  // グリッド線を描画
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 1;
+
+  // 横線（Y軸グリッド）
+  const ySteps = 5;
+  for (let i = 0; i <= ySteps; i++) {
+    const y = graphY + (graphHeight / ySteps) * i;
+    ctx.beginPath();
+    ctx.moveTo(graphX, y);
+    ctx.lineTo(graphX + graphWidth, y);
+    ctx.stroke();
+
+    // Y軸ラベル
+    const timeValue = yMax - ((yMax - yMin) / ySteps) * i;
+    ctx.fillStyle = '#666';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(formatMsToTime(timeValue, true), graphX - 10, y + 4);
+  }
+
+  // 縦線（X軸グリッド）
+  for (let i = 0; i < maxLaps; i++) {
+    const x = toX(i);
+    ctx.beginPath();
+    ctx.moveTo(x, graphY);
+    ctx.lineTo(x, graphY + graphHeight);
+    ctx.stroke();
+
+    // X軸ラベル
+    ctx.fillStyle = '#666';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    const lapNumber = skipFirstLap ? i + 2 : i + 1;
+    ctx.fillText(`${lapNumber}周`, x, graphY + graphHeight + 20);
+  }
+
+  // 軸を描画
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(graphX, graphY);
+  ctx.lineTo(graphX, graphY + graphHeight);
+  ctx.lineTo(graphX + graphWidth, graphY + graphHeight);
+  ctx.stroke();
+
+  // 選手ごとに折れ線を描画
+  const colors = [
+    '#4CAF50', '#2196F3', '#F44336', '#FF9800', '#9C27B0',
+    '#00BCD4', '#FFEB3B', '#E91E63', '#3F51B5', '#8BC34A'
+  ];
+
+  riders.forEach((rider, riderIndex) => {
+    const times = skipFirstLap ? rider.lapTimes.slice(1) : rider.lapTimes;
+    if (times.length === 0) return;
+
+    const color = colors[riderIndex % colors.length];
+
+    // 折れ線を描画
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    times.forEach((time, lapIndex) => {
+      const x = toX(lapIndex);
+      const y = toY(time);
+
+      if (lapIndex === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+    ctx.stroke();
+
+    // データポイントを描画
+    ctx.fillStyle = color;
+    times.forEach((time, lapIndex) => {
+      const x = toX(lapIndex);
+      const y = toY(time);
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  });
+
+  // 凡例を描画
+  const legendX = graphX + graphWidth - 150;
+  const legendY = graphY + 10;
+  const legendItemHeight = 20;
+
+  riders.forEach((rider, index) => {
+    const color = colors[index % colors.length];
+    const y = legendY + index * legendItemHeight;
+
+    // 色の四角
+    ctx.fillStyle = color;
+    ctx.fillRect(legendX, y, 15, 15);
+
+    // 選手名
+    ctx.fillStyle = '#333';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'left';
+    const nameText = `${rider.rank} ${rider.name}`;
+    ctx.fillText(nameText.length > 15 ? nameText.substring(0, 15) + '...' : nameText, legendX + 20, y + 12);
+  });
+
+  // タイトル
+  ctx.fillStyle = '#333';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ラップタイム推移', width / 2, 20);
+}
+
+// グラフコンテナを作成
+function createGraphContainer(table) {
+  const container = document.createElement('div');
+  container.className = 'lap-graph-container';
+  container.style.display = 'none'; // 初期状態は非表示
+
+  // コントロールエリア
+  const controls = document.createElement('div');
+  controls.className = 'lap-graph-controls';
+
+  // 1周目表示/非表示トグル
+  const firstLapToggle = document.createElement('label');
+  firstLapToggle.className = 'lap-graph-toggle';
+  firstLapToggle.innerHTML = `
+    <input type="checkbox" class="first-lap-toggle" checked>
+    <span>1周目を表示</span>
+  `;
+  controls.appendChild(firstLapToggle);
+
+  // 選手選択情報
+  const selectionInfo = document.createElement('div');
+  selectionInfo.className = 'lap-graph-selection-info';
+  selectionInfo.textContent = '選手を選択してグラフに表示';
+  controls.appendChild(selectionInfo);
+
+  container.appendChild(controls);
+
+  // Canvasエリア
+  const canvasWrapper = document.createElement('div');
+  canvasWrapper.className = 'lap-graph-canvas-wrapper';
+
+  const canvas = document.createElement('canvas');
+  canvas.className = 'lap-graph-canvas';
+  canvasWrapper.appendChild(canvas);
+
+  container.appendChild(canvasWrapper);
+
+  return container;
+}
+
+// グラフを更新
+function updateGraph(table) {
+  const graphData = graphDataMap.get(table);
+  if (!graphData) return;
+
+  const container = table.parentElement.querySelector('.lap-graph-container');
+  if (!container) return;
+
+  const canvas = container.querySelector('.lap-graph-canvas');
+  const firstLapToggle = container.querySelector('.first-lap-toggle');
+  const skipFirstLap = !firstLapToggle.checked;
+
+  // 選択された選手を取得
+  const selectedRiders = [];
+  graphData.riders.forEach(rider => {
+    const checkbox = rider.row.querySelector('.rider-select-checkbox');
+    if (checkbox && checkbox.checked) {
+      selectedRiders.push(rider);
+    }
+  });
+
+  // 選択情報を更新
+  const selectionInfo = container.querySelector('.lap-graph-selection-info');
+  if (selectedRiders.length === 0) {
+    selectionInfo.textContent = '選手を選択してグラフに表示';
+  } else {
+    selectionInfo.textContent = `${selectedRiders.length}名の選手を表示中`;
+  }
+
+  // グラフを描画
+  drawLineGraph(canvas, selectedRiders, { skipFirstLap });
+}
+
+// 選手選択チェックボックスを追加
+function addRiderCheckboxes(table) {
+  const graphData = graphDataMap.get(table);
+  if (!graphData) return;
+
+  graphData.riders.forEach(rider => {
+    // 既にチェックボックスがある場合はスキップ
+    if (rider.row.querySelector('.rider-select-checkbox')) return;
+
+    // チェックボックスを作成
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'rider-select-checkbox';
+    checkbox.style.marginLeft = '10px';
+    checkbox.style.cursor = 'pointer';
+
+    // チェック状態変更時にグラフを更新
+    checkbox.addEventListener('change', () => {
+      updateGraph(table);
+    });
+
+    // 選手名セルに追加
+    const nameCell = rider.row.querySelector('td:nth-child(2)');
+    if (nameCell) {
+      nameCell.appendChild(checkbox);
+    }
+  });
+}
+
+// グラフボタンを追加
+function addGraphButton(table) {
+  // 既にボタンがある場合はスキップ
+  const existingButton = table.parentElement.querySelector('.lap-graph-toggle-button');
+  if (existingButton) return;
+
+  // ボタンを作成
+  const button = document.createElement('button');
+  button.className = 'lap-graph-toggle-button';
+  button.textContent = '📊 グラフを表示';
+  button.style.cssText = `
+    margin: 10px 0;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  `;
+
+  button.addEventListener('mouseenter', () => {
+    button.style.backgroundColor = '#45a049';
+  });
+
+  button.addEventListener('mouseleave', () => {
+    button.style.backgroundColor = '#4CAF50';
+  });
+
+  button.addEventListener('click', () => {
+    const container = table.parentElement.querySelector('.lap-graph-container');
+    if (!container) return;
+
+    const isVisible = container.style.display !== 'none';
+
+    if (isVisible) {
+      // 非表示にする
+      container.style.display = 'none';
+      button.textContent = '📊 グラフを表示';
+    } else {
+      // 表示する
+      container.style.display = 'block';
+      button.textContent = '📊 グラフを非表示';
+      updateGraph(table);
+    }
+  });
+
+  // テーブルの後に挿入
+  const graphContainer = createGraphContainer(table);
+  table.parentElement.insertBefore(button, table.nextSibling);
+  table.parentElement.insertBefore(graphContainer, button.nextSibling);
+
+  // 選手選択チェックボックスを追加
+  addRiderCheckboxes(table);
+
+  // 1周目トグルのイベントリスナー
+  const firstLapToggle = graphContainer.querySelector('.first-lap-toggle');
+  if (firstLapToggle) {
+    firstLapToggle.addEventListener('change', () => {
+      updateGraph(table);
+    });
+  }
+}
