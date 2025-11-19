@@ -272,6 +272,15 @@ function convertLapTimesInTable(table) {
           return;
         }
 
+        // 最初のラップ（スタートループまたは1周目）は既にネットラップタイムなのでスキップ
+        if (prevMs === 0) {
+          if (rowIndex < 3) {
+            console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: 最初のラップのためスキップ (original="${original}")`);
+          }
+          prevMs = ms;
+          return;
+        }
+
         // 元の形式に小数点が含まれているかチェック
         const includeDecimal = original.includes('.');
         const newTimeStr = formatMsToTime(netLapTime, includeDecimal);
