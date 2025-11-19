@@ -147,21 +147,45 @@ function getLapTimeColumnIndices(table) {
   const headerRow = table.querySelector('thead tr');
   if (!headerRow) {
     console.log('ヘッダー行が見つかりません');
-    return [];
+    return { lapColumnIndices: [], startLoopIndex: null };
   }
 
   const headers = Array.from(headerRow.querySelectorAll('th'));
   const lapColumnIndices = [];
+  let startLoopIndex = null;
 
   headers.forEach((header, index) => {
+    const headerText = header.textContent.trim();
+
     // cell__lapat クラスを持つか、「周」を含むヘッダーを探す
-    if (header.classList.contains('cell__lapat') || /\d+周/.test(header.textContent)) {
+    if (header.classList.contains('cell__lapat') || /\d+周/.test(headerText)) {
       lapColumnIndices.push(index);
+
+      // スタートループを検出（複数のパターンに対応）
+      // - "StartLoop" (大文字小文字問わず)
+      // - "Start Loop" (スペース入り)
+      // - "スタートループ"
+      // - "0周" (念のため)
+      // - "0lap", "Lap 0" など
+      if (
+        /start\s*loop/i.test(headerText) ||
+        /スタートループ/.test(headerText) ||
+        /^0周/.test(headerText) ||
+        /^0\s*lap/i.test(headerText) ||
+        /^lap\s*0/i.test(headerText)
+      ) {
+        startLoopIndex = lapColumnIndices.length - 1; // lapColumnIndices内でのインデックス
+        console.log(`スタートループを検出: 列${index} (ヘッダー: "${headerText}", ラップインデックス: ${startLoopIndex})`);
+      }
     }
   });
 
   console.log(`ラップタイム列を検出: ${lapColumnIndices.length}列 (インデックス: ${lapColumnIndices.join(', ')})`);
-  return lapColumnIndices;
+  if (startLoopIndex !== null) {
+    console.log(`  ※ スタートループ(0周)が含まれています (ラップインデックス: ${startLoopIndex})`);
+  }
+
+  return { lapColumnIndices, startLoopIndex };
 }
 
 // テーブルのラップタイムを変換
@@ -172,7 +196,7 @@ function convertLapTimesInTable(table) {
 
   console.log('ラップタイムテーブルを発見しました');
 
-  const lapColumnIndices = getLapTimeColumnIndices(table);
+  const { lapColumnIndices, startLoopIndex } = getLapTimeColumnIndices(table);
   if (lapColumnIndices.length === 0) {
     console.log('ラップタイム列が見つかりませんでした');
     return false;
@@ -294,32 +318,49 @@ function convertLapTimesInTable(table) {
       }
     });
 
-    // この選手のベストラップを検出
+    // この選手のベストラップを検出（スタートループを除外）
     if (riderLapTimes.length > 0) {
-      const minLapTime = Math.min(...riderLapTimes.map(lt => lt.netLapTime));
-      riderLapTimes.forEach(({ cell, netLapTime }) => {
-        if (netLapTime === minLapTime) {
-          cell.classList.add('rider-best-lap');
-          cell.setAttribute('data-rider-best', 'true');
-        }
-      });
+      // スタートループを除外してベストラップを計算
+      const validRiderLaps = startLoopIndex !== null
+        ? riderLapTimes.filter(lt => lt.lapIndex !== startLoopIndex)
+        : riderLapTimes;
+
+      if (validRiderLaps.length > 0) {
+        const minLapTime = Math.min(...validRiderLaps.map(lt => lt.netLapTime));
+        validRiderLaps.forEach(({ cell, netLapTime }) => {
+          if (netLapTime === minLapTime) {
+            cell.classList.add('rider-best-lap');
+            cell.setAttribute('data-rider-best', 'true');
+          }
+        });
+      }
     }
   });
 
-  // レース全体のベストラップを検出
+  // レース全体のベストラップを検出（スタートループを除外）
   if (allLapTimes.length > 0) {
-    const overallBestLapTime = Math.min(...allLapTimes.map(lt => lt.netLapTime));
-    let bestLapCount = 0;
+    // スタートループを除外してベストラップを計算
+    const validAllLaps = startLoopIndex !== null
+      ? allLapTimes.filter(lt => lt.lapIndex !== startLoopIndex)
+      : allLapTimes;
 
-    allLapTimes.forEach(({ cell, netLapTime }) => {
-      if (netLapTime === overallBestLapTime) {
-        cell.classList.add('overall-best-lap');
-        cell.setAttribute('data-overall-best', 'true');
-        bestLapCount++;
+    if (validAllLaps.length > 0) {
+      const overallBestLapTime = Math.min(...validAllLaps.map(lt => lt.netLapTime));
+      let bestLapCount = 0;
+
+      validAllLaps.forEach(({ cell, netLapTime }) => {
+        if (netLapTime === overallBestLapTime) {
+          cell.classList.add('overall-best-lap');
+          cell.setAttribute('data-overall-best', 'true');
+          bestLapCount++;
+        }
+      });
+
+      console.log(`  ベストラップ: ${formatMsToTime(overallBestLapTime, true)} (${bestLapCount}箇所)`);
+      if (startLoopIndex !== null) {
+        console.log(`  ※ スタートループは除外しました`);
       }
-    });
-
-    console.log(`  ベストラップ: ${formatMsToTime(overallBestLapTime, true)} (${bestLapCount}箇所)`);
+    }
   }
 
   if (convertedCount > 0) {
