@@ -1,12 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Cyclocross Lap Time Converter",
-  "version": "1.3.2",
-  "description": "シクロクロス公式リザルトページの経過時間をネットラップタイムに変換します",
+  "name": "AjoccToys",
+  "version": "1.3.3",
+  "description": "AJOCC公式リザルトページの経過時間をネットラップタイムに変換します。今後要望に応じて機能を拡張します",
   "permissions": ["storage"],
-  "host_permissions": [
-    "https://data.cyclocross.jp/*"
-  ],
+  "host_permissions": ["https://data.cyclocross.jp/*"],
   "background": {
     "service_worker": "background.js"
   },
@@ -19,6 +17,6 @@
     }
   ],
   "action": {
-    "default_title": "Cyclocross Lap Time Converter - クリックでON/OFF切り替え"
+    "default_title": "AjoccToys - クリックでON/OFF切り替え"
   }
 }
