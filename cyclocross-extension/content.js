@@ -147,12 +147,15 @@ function convertLapTimesInTable(table) {
   const rows = Array.from(tbody.querySelectorAll('tr'));
   let convertedCount = 0;
 
+  console.log(`  tbody内の行数: ${rows.length}`);
+
   rows.forEach((row, rowIndex) => {
     const cells = Array.from(row.querySelectorAll('td'));
 
     // DNS行などはスキップ
     const rankCell = cells[0];
     if (!rankCell || rankCell.textContent.trim() === 'DNS') {
+      console.log(`  行${rowIndex + 1}: DNS行のためスキップ`);
       return;
     }
 
@@ -168,6 +171,11 @@ function convertLapTimesInTable(table) {
         const timeStr = textDiv ? textDiv.textContent.trim() : cell.textContent.trim();
         const ms = parseTimeToMs(timeStr);
 
+        // 最初の数行だけデバッグログを出力
+        if (rowIndex < 3) {
+          console.log(`  行${rowIndex + 1}, 列${colIndex}: timeStr="${timeStr}", ms=${ms}, textDiv=${!!textDiv}`);
+        }
+
         lapData.push({
           cell: cell,
           textDiv: textDiv,
@@ -182,12 +190,13 @@ function convertLapTimesInTable(table) {
     });
 
     if (!hasValidData) {
+      console.log(`  行${rowIndex + 1}: 有効なデータがないためスキップ`);
       return;
     }
 
     // 経過時間からネットラップタイムに変換
     let prevMs = 0;
-    lapData.forEach(({ cell, textDiv, ms, original }) => {
+    lapData.forEach(({ cell, textDiv, ms, original }, lapIndex) => {
       if (ms !== null && ms > 0) {
         const netLapTime = ms - prevMs;
 
@@ -200,6 +209,11 @@ function convertLapTimesInTable(table) {
         // 元の形式に小数点が含まれているかチェック
         const includeDecimal = original.includes('.');
         const newTimeStr = formatMsToTime(netLapTime, includeDecimal);
+
+        // 最初の数行だけデバッグログを出力
+        if (rowIndex < 3) {
+          console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: original="${original}", netLapTime=${netLapTime}ms, newTimeStr="${newTimeStr}"`);
+        }
 
         // セルの内容を更新
         if (original !== '' && original !== '-') {
@@ -216,6 +230,14 @@ function convertLapTimesInTable(table) {
           cell.classList.add('converted-lap-time');
 
           convertedCount++;
+
+          if (rowIndex < 3) {
+            console.log(`  → 変換成功: convertedCount=${convertedCount}`);
+          }
+        } else {
+          if (rowIndex < 3) {
+            console.log(`  → スキップ: original="${original}"`);
+          }
         }
 
         prevMs = ms;
