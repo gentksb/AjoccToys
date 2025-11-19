@@ -460,12 +460,17 @@
 
 /* 選手選択チェックボックス */
 .rider-select-checkbox {
-  display: inline-block;
-  margin-right: 8px;
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
-  vertical-align: middle;
+  display: inline-block !important;
+  margin-right: 8px !important;
+  cursor: pointer !important;
+  width: 16px !important;
+  height: 16px !important;
+  vertical-align: middle !important;
+}
+
+/* チェックボックス付きライダー名リンク */
+.rider-name-with-checkbox {
+  display: inline !important;
 }
 
 /* グラフに移動ボタン（上部用） */

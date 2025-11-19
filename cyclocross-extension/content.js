@@ -1029,9 +1029,13 @@ function addRiderCheckboxes(table) {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.className = 'rider-select-checkbox';
-    checkbox.style.marginRight = '8px';
-    checkbox.style.cursor = 'pointer';
-    checkbox.style.verticalAlign = 'middle';
+    // インラインスタイルで確実にインライン表示
+    checkbox.style.cssText = `
+      display: inline-block !important;
+      margin-right: 8px;
+      cursor: pointer;
+      vertical-align: middle;
+    `;
 
     // チェック状態変更時にグラフを更新し、自動展開
     checkbox.addEventListener('change', () => {
@@ -1054,6 +1058,13 @@ function addRiderCheckboxes(table) {
     if (nameCell) {
       // セルの最初の子要素の前に挿入
       nameCell.insertBefore(checkbox, nameCell.firstChild);
+
+      // a要素を取得してインライン表示に設定（サイト側のCSSを上書き）
+      const link = nameCell.querySelector('a');
+      if (link) {
+        link.style.display = 'inline';
+        link.classList.add('rider-name-with-checkbox');
+      }
     }
   });
 }
