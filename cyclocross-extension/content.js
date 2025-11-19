@@ -272,10 +272,12 @@ function convertLapTimesInTable(table) {
           return;
         }
 
-        // 最初のラップ（スタートループまたは1周目）は既にネットラップタイムなのでスキップ
-        if (prevMs === 0) {
+        // 最初の列（lapIndex === 0）は既にネットラップタイムなのでスキップ
+        // スタートループがある場合: 0列目（スタートループ）をスキップ、1列目（1周目）は変換
+        // スタートループがない場合: 0列目（1周目）をスキップ、1列目（2周目）以降は変換
+        if (lapIndex === 0) {
           if (rowIndex < 3) {
-            console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: 最初のラップのためスキップ (original="${original}")`);
+            console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: 最初の列のためスキップ (original="${original}")`);
           }
           prevMs = ms;
           return;
