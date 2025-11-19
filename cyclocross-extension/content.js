@@ -306,12 +306,17 @@ function convertLapTimesInTable(table) {
           return;
         }
 
-        // 最初の列（lapIndex === 0）は既にネットラップタイムなのでスキップ
-        // スタートループがある場合: 0列目（スタートループ）をスキップ、1列目（1周目）は変換
-        // スタートループがない場合: 0列目（1周目）をスキップ、1列目（2周目）以降は変換
+        // 最初の列（lapIndex === 0）は既にネットラップタイムなのでセルの更新はスキップ
+        // ただし、ベストラップ判定には含める必要がある
+        // スタートループの除外は別途 startLoopIndex で判定される
         if (lapIndex === 0) {
           if (rowIndex < 3) {
-            console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: 最初の列のためスキップ (original="${original}")`);
+            console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: 最初の列のためセル更新スキップ (original="${original}", netLapTime=${netLapTime}ms)`);
+          }
+          // ベストラップ判定用にラップタイムを記録
+          if (original !== '' && original !== '-') {
+            riderLapTimes.push({ cell, netLapTime, lapIndex });
+            allLapTimes.push({ cell, netLapTime, lapIndex, rowIndex });
           }
           prevMs = ms;
           return;

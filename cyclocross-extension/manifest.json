@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Cyclocross Lap Time Converter",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "シクロクロス公式リザルトページの経過時間をネットラップタイムに変換します",
   "permissions": ["storage"],
   "host_permissions": [
