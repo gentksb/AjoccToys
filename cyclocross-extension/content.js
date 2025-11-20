@@ -242,7 +242,7 @@ function detectDataFormat(table, lapColumnIndices) {
       continue;
     }
 
-    // 最初の2つの有効なラップタイムを取得
+    // できるだけ多くの有効なラップタイムを取得（最大5つ）
     const times = [];
     for (const colIndex of lapColumnIndices) {
       if (colIndex < cells.length) {
@@ -253,25 +253,56 @@ function detectDataFormat(table, lapColumnIndices) {
 
         if (ms !== null && ms > 0) {
           times.push(ms);
-          if (times.length >= 2) break;
+          if (times.length >= 5) break; // 5つまで取得
         }
       }
     }
 
-    // 最初の2つのタイムを比較
+    // 3つ以上のデータがある場合、差分の変動係数を使って判定
+    if (times.length >= 3) {
+      // 連続する差分を計算
+      const diffs = [];
+      for (let i = 1; i < times.length; i++) {
+        diffs.push(times[i] - times[i - 1]);
+      }
+
+      // 差分の平均と標準偏差を計算
+      const diffMean = diffs.reduce((sum, d) => sum + d, 0) / diffs.length;
+      const diffVariance = diffs.reduce((sum, d) => sum + Math.pow(d - diffMean, 2), 0) / diffs.length;
+      const diffStdDev = Math.sqrt(diffVariance);
+      const diffCV = diffStdDev / diffMean; // 変動係数
+
+      // 判定ロジック:
+      // - 経過時間形式: 差分がほぼ一定（CVが小さい）、かつ値が単調増加
+      // - ラップタイム形式: 値自体がほぼ一定（差分が小さく不規則）
+
+      // 経過時間形式の特徴: 差分のCV < 0.2 かつ 最初の値が最後の値の0.6倍未満
+      const isMonotonicIncreasing = times[times.length - 1] > times[0] * 1.2;
+
+      if (diffCV < 0.2 && isMonotonicIncreasing) {
+        console.log(`データ形式判定: 経過時間形式 (差分CV=${diffCV.toFixed(3)}, 時間=${times.map(t => formatMsToTime(t)).join(', ')})`);
+        return 'cumulative';
+      } else {
+        console.log(`データ形式判定: ラップタイム形式 (差分CV=${diffCV.toFixed(3)}, 時間=${times.map(t => formatMsToTime(t)).join(', ')})`);
+        return 'laptime';
+      }
+    }
+
+    // 2つしかデータがない場合、より保守的な閾値で判定
     if (times.length >= 2) {
       const firstTime = times[0];
       const secondTime = times[1];
+      const ratio = secondTime / firstTime;
 
-      // 経過時間形式の場合、2周目は必ず1周目の2倍未満になる
-      // ラップタイム形式の場合、2周目のタイムは1周目とほぼ同じ範囲（通常0.5〜1.5倍）
-      // 判定: 2周目が1周目の1.8倍未満ならラップタイム形式
-      if (secondTime < firstTime * 1.8) {
-        console.log(`データ形式判定: ラップタイム形式 (1周目=${formatMsToTime(firstTime)}, 2周目=${formatMsToTime(secondTime)})`);
-        return 'laptime';
-      } else {
-        console.log(`データ形式判定: 経過時間形式 (1周目=${formatMsToTime(firstTime)}, 2周目=${formatMsToTime(secondTime)})`);
+      // 経過時間形式の場合、2周目は1周目の1.3倍以上になる
+      // ラップタイム形式の場合、2周目のタイムは1周目とほぼ同じ範囲（通常0.8〜1.2倍）
+      // 判定: 2周目が1周目の1.3倍以上なら経過時間形式
+      if (ratio >= 1.3) {
+        console.log(`データ形式判定: 経過時間形式 (1つ目=${formatMsToTime(firstTime)}, 2つ目=${formatMsToTime(secondTime)}, 比率=${ratio.toFixed(2)})`);
         return 'cumulative';
+      } else {
+        console.log(`データ形式判定: ラップタイム形式 (1つ目=${formatMsToTime(firstTime)}, 2つ目=${formatMsToTime(secondTime)}, 比率=${ratio.toFixed(2)})`);
+        return 'laptime';
       }
     }
 
