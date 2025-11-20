@@ -60,11 +60,6 @@
 1. このリポジトリをクローンまたは Code ボタンから ZIP ダウンロードします
    ![ZIPでダウンロードして解凍](./docs/images/zipdl.png)
 
-   ```bash
-   git clone https://github.com/gentksb/ajocc-tools.git
-   cd ajocc-tools
-   ```
-
 2. Google Chrome を開き、アドレスバーに `chrome://extensions/` と入力して Enter キーを押します
 
 3. 右上の「デベロッパーモード」を ON にします
