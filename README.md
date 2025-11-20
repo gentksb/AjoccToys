@@ -206,7 +206,7 @@ Chrome Web Store の登録厳格化により、現在ストア公開予定はあ
 
 ## ライセンス
 
-MIT License
+[LICENSE](./LICENSE)参照のこと
 
 ## 貢献
 
