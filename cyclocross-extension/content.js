@@ -395,7 +395,9 @@ function convertLapTimesInTable(table) {
             graphLapTimes.push(netLapTime); // グラフ用データ
 
             // セルに属性を追加（元に戻すため & ベストラップ検出用）
-            cell.setAttribute('data-cumulative-time', cumulativeTime.toString()); // 計算した経過時間
+            const includeDecimal = original.includes('.');
+            const cumulativeTimeStr = formatMsToTime(cumulativeTime, includeDecimal);
+            cell.setAttribute('data-cumulative-time', cumulativeTimeStr); // 計算した経過時間（文字列）
             cell.setAttribute('data-converted', 'true');
             cell.setAttribute('data-net-lap-time', netLapTime.toString()); // 元のラップタイム
             cell.setAttribute('data-format', 'laptime');
@@ -403,7 +405,7 @@ function convertLapTimesInTable(table) {
 
             // 表示はそのまま（ラップタイム）なので変換不要
             if (rowIndex < 3) {
-              console.log(`  → ラップタイム形式: 表示はそのまま（${original}）、経過時間=${formatMsToTime(cumulativeTime)}`);
+              console.log(`  → ラップタイム形式: 表示はそのまま（${original}）、経過時間=${cumulativeTimeStr}`);
             }
           }
         }
