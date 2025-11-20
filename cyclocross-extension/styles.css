@@ -3,8 +3,9 @@
  * 変換されたラップタイムを視覚的に明示
  */
 
-/* 変換されたラップタイムのセル */
-.converted-lap-time {
+/* 処理されたラップタイムのセル（両形式共通） */
+.cumulative-converted,
+.laptime-processed {
   background-color: #e8f5e9 !important;
   position: relative;
   font-weight: 500;
@@ -30,7 +31,8 @@
 
 /* ダークモード対応 */
 @media (prefers-color-scheme: dark) {
-  .converted-lap-time {
+  .cumulative-converted,
+  .laptime-processed {
     background-color: #1b5e20 !important;
     color: #e8f5e9 !important;
   }
@@ -48,7 +50,8 @@
 }
 
 /* ホバー時のエフェクト */
-.converted-lap-time:hover {
+.cumulative-converted:hover,
+.laptime-processed:hover {
   background-color: #c8e6c9 !important;
   cursor: help;
 }
@@ -64,7 +67,8 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .converted-lap-time:hover {
+  .cumulative-converted:hover,
+  .laptime-processed:hover {
     background-color: #2e7d32 !important;
   }
 
@@ -77,8 +81,9 @@
   }
 }
 
-/* 変換済みマーカー（セルの右上に小さなアイコン） */
-.converted-lap-time::after {
+/* 処理済みマーカー（セルの右上に小さなアイコン） */
+.cumulative-converted::after,
+.laptime-processed::after {
   content: "⏱";
   position: absolute;
   top: 2px;
@@ -108,9 +113,9 @@
   opacity: 1;
 }
 
-/* ツールチップ（元の値を表示） */
-.converted-lap-time::before {
-  content: "元の経過時間: " attr(data-original-time);
+/* ツールチップ（経過時間形式：元の経過時間を表示） */
+.cumulative-converted::before {
+  content: "元の経過時間: " attr(data-cumulative-time);
   position: absolute;
   bottom: 100%;
   left: 50%;
@@ -128,21 +133,54 @@
   margin-bottom: 5px;
 }
 
-/* 選手の個人ベストラップのツールチップ（変換済み） */
-.converted-lap-time.rider-best-lap::before {
-  content: "★ 個人ベストラップ | 元: " attr(data-original-time);
+/* ツールチップ（ラップタイム形式：計算した経過時間を表示） */
+.laptime-processed::before {
+  content: "経過時間: " attr(data-cumulative-time);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  margin-bottom: 5px;
+}
+
+/* 選手の個人ベストラップのツールチップ（経過時間形式） */
+.cumulative-converted.rider-best-lap::before {
+  content: "★ 個人ベストラップ | 元: " attr(data-cumulative-time);
   background-color: rgba(245, 127, 23, 0.95);
 }
 
-/* レース全体のベストラップのツールチップ（変換済み） */
-.converted-lap-time.overall-best-lap::before {
-  content: "🏆 レース最速ラップ | 元: " attr(data-original-time);
+/* 選手の個人ベストラップのツールチップ（ラップタイム形式） */
+.laptime-processed.rider-best-lap::before {
+  content: "★ 個人ベストラップ | 経過: " attr(data-cumulative-time);
+  background-color: rgba(245, 127, 23, 0.95);
+}
+
+/* レース全体のベストラップのツールチップ（経過時間形式） */
+.cumulative-converted.overall-best-lap::before {
+  content: "🏆 レース最速ラップ | 元: " attr(data-cumulative-time);
   background-color: rgba(216, 67, 21, 0.95);
   font-weight: 600;
 }
 
-/* 選手の個人ベストラップのツールチップ（未変換、1周目など） */
-.rider-best-lap:not(.converted-lap-time)::before {
+/* レース全体のベストラップのツールチップ（ラップタイム形式） */
+.laptime-processed.overall-best-lap::before {
+  content: "🏆 レース最速ラップ | 経過: " attr(data-cumulative-time);
+  background-color: rgba(216, 67, 21, 0.95);
+  font-weight: 600;
+}
+
+/* 選手の個人ベストラップのツールチップ（未処理、1周目など） */
+.rider-best-lap:not(.cumulative-converted):not(.laptime-processed)::before {
   content: "★ 個人ベストラップ";
   position: absolute;
   bottom: 100%;
@@ -161,8 +199,8 @@
   margin-bottom: 5px;
 }
 
-/* レース全体のベストラップのツールチップ（未変換、1周目など） */
-.overall-best-lap:not(.converted-lap-time)::before {
+/* レース全体のベストラップのツールチップ（未処理、1周目など） */
+.overall-best-lap:not(.cumulative-converted):not(.laptime-processed)::before {
   content: "🏆 レース最速ラップ";
   position: absolute;
   bottom: 100%;
@@ -182,7 +220,8 @@
   font-weight: 600;
 }
 
-.converted-lap-time:hover::before,
+.cumulative-converted:hover::before,
+.laptime-processed:hover::before,
 .rider-best-lap:hover::before,
 .overall-best-lap:hover::before {
   opacity: 1;
@@ -308,9 +347,10 @@
   }
 }
 
-/* プリント時は変換マーカーを非表示 */
+/* プリント時は処理マーカーを非表示 */
 @media print {
-  .converted-lap-time::after {
+  .cumulative-converted::after,
+  .laptime-processed::after {
     display: none;
   }
 
@@ -318,7 +358,8 @@
     display: none;
   }
 
-  .converted-lap-time {
+  .cumulative-converted,
+  .laptime-processed {
     background-color: transparent !important;
   }
 

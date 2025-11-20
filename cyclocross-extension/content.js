@@ -225,6 +225,65 @@ function getLapTimeColumnIndices(table) {
   return { lapColumnIndices, startLoopIndex };
 }
 
+// データ形式を判定（ラップタイム形式 or 経過時間形式）
+function detectDataFormat(table, lapColumnIndices) {
+  const tbody = table.querySelector('tbody');
+  if (!tbody) return 'cumulative'; // デフォルトは経過時間形式
+
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+
+  // 1位の選手（最初の有効な行）のデータを取得
+  for (const row of rows) {
+    const cells = Array.from(row.querySelectorAll('td'));
+    const rankCell = cells[0];
+
+    // DNS行などはスキップ
+    if (!rankCell || rankCell.textContent.trim() === 'DNS' || rankCell.textContent.trim() === 'DNF') {
+      continue;
+    }
+
+    // 最初の2つの有効なラップタイムを取得
+    const times = [];
+    for (const colIndex of lapColumnIndices) {
+      if (colIndex < cells.length) {
+        const cell = cells[colIndex];
+        const textDiv = cell.querySelector('div.text-right, div');
+        const timeStr = textDiv ? textDiv.textContent.trim() : cell.textContent.trim();
+        const ms = parseTimeToMs(timeStr);
+
+        if (ms !== null && ms > 0) {
+          times.push(ms);
+          if (times.length >= 2) break;
+        }
+      }
+    }
+
+    // 最初の2つのタイムを比較
+    if (times.length >= 2) {
+      const firstTime = times[0];
+      const secondTime = times[1];
+
+      // 経過時間形式の場合、2周目は必ず1周目の2倍未満になる
+      // ラップタイム形式の場合、2周目のタイムは1周目とほぼ同じ範囲（通常0.5〜1.5倍）
+      // 判定: 2周目が1周目の1.8倍未満ならラップタイム形式
+      if (secondTime < firstTime * 1.8) {
+        console.log(`データ形式判定: ラップタイム形式 (1周目=${formatMsToTime(firstTime)}, 2周目=${formatMsToTime(secondTime)})`);
+        return 'laptime';
+      } else {
+        console.log(`データ形式判定: 経過時間形式 (1周目=${formatMsToTime(firstTime)}, 2周目=${formatMsToTime(secondTime)})`);
+        return 'cumulative';
+      }
+    }
+
+    // 最初の有効な行のみをチェック
+    break;
+  }
+
+  // 判定できない場合はデフォルトで経過時間形式
+  console.log('データ形式判定: デフォルト（経過時間形式）');
+  return 'cumulative';
+}
+
 // テーブルのラップタイムを変換
 function convertLapTimesInTable(table) {
   if (!isLapTimeTable(table)) {
@@ -244,6 +303,9 @@ function convertLapTimesInTable(table) {
     console.log('tbody要素が見つかりません');
     return false;
   }
+
+  // データ形式を判定
+  const dataFormat = detectDataFormat(table, lapColumnIndices);
 
   const rows = Array.from(tbody.querySelectorAll('tr'));
   let convertedCount = 0;
@@ -306,81 +368,125 @@ function convertLapTimesInTable(table) {
       return;
     }
 
-    // 経過時間からネットラップタイムに変換
-    let prevMs = 0;
-    const riderLapTimes = []; // この選手のラップタイム（ベストラップ検出用）
-    const graphLapTimes = []; // グラフ用ラップタイム配列（ミリ秒）
+    // この選手のラップタイム（ベストラップ検出用）
+    const riderLapTimes = [];
+    // グラフ用ラップタイム配列（ミリ秒）
+    const graphLapTimes = [];
 
-    lapData.forEach(({ cell, textDiv, ms, original }, lapIndex) => {
-      if (ms !== null && ms > 0) {
-        const netLapTime = ms - prevMs;
+    if (dataFormat === 'laptime') {
+      // ラップタイム形式: 元データが既にラップタイムなので、そのまま表示
+      // 経過時間を計算してdata-cumulative-timeに保存
+      let cumulativeTime = 0;
 
-        if (netLapTime < 0) {
-          console.warn(`警告: 行${rowIndex + 1}で負のラップタイムが検出されました (${netLapTime}ms)`);
-          prevMs = ms;
-          return;
-        }
+      lapData.forEach(({ cell, textDiv, ms, original }, lapIndex) => {
+        if (ms !== null && ms > 0) {
+          const netLapTime = ms; // 元データがラップタイム
+          cumulativeTime += netLapTime;
 
-        // 最初の列（lapIndex === 0）は既にネットラップタイムなのでセルの更新はスキップ
-        // ただし、ベストラップ判定には含める必要がある
-        // スタートループの除外は別途 startLoopIndex で判定される
-        if (lapIndex === 0) {
+          // 最初の数行だけデバッグログを出力
           if (rowIndex < 3) {
-            console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: 最初の列のためセル更新スキップ (original="${original}", netLapTime=${netLapTime}ms)`);
+            console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: original="${original}", netLapTime=${netLapTime}ms, cumulative=${cumulativeTime}ms`);
           }
+
           // ベストラップ判定用にラップタイムを記録
           if (original !== '' && original !== '-') {
             riderLapTimes.push({ cell, netLapTime, lapIndex });
             allLapTimes.push({ cell, netLapTime, lapIndex, rowIndex });
             graphLapTimes.push(netLapTime); // グラフ用データ
+
+            // セルに属性を追加（元に戻すため & ベストラップ検出用）
+            const includeDecimal = original.includes('.');
+            const cumulativeTimeStr = formatMsToTime(cumulativeTime, includeDecimal);
+            cell.setAttribute('data-cumulative-time', cumulativeTimeStr); // 計算した経過時間（文字列）
+            cell.setAttribute('data-converted', 'true');
+            cell.setAttribute('data-net-lap-time', netLapTime.toString()); // 元のラップタイム
+            cell.setAttribute('data-format', 'laptime');
+            cell.classList.add('laptime-processed');
+
+            // 表示はそのまま（ラップタイム）なので変換不要
+            if (rowIndex < 3) {
+              console.log(`  → ラップタイム形式: 表示はそのまま（${original}）、経過時間=${cumulativeTimeStr}`);
+            }
           }
+        }
+      });
+    } else {
+      // 経過時間形式: 経過時間からネットラップタイムに変換して表示
+      let prevMs = 0;
+
+      lapData.forEach(({ cell, textDiv, ms, original }, lapIndex) => {
+        if (ms !== null && ms > 0) {
+          const netLapTime = ms - prevMs;
+          const cumulativeTime = ms; // 経過時間（元データ）
+
+          if (netLapTime < 0) {
+            console.warn(`警告: 行${rowIndex + 1}で負のラップタイムが検出されました (${netLapTime}ms)`);
+            prevMs = ms;
+            return;
+          }
+
+          // 最初の列（lapIndex === 0）は既にネットラップタイムなのでセルの更新はスキップ
+          // ただし、ベストラップ判定には含める必要がある
+          // スタートループの除外は別途 startLoopIndex で判定される
+          if (lapIndex === 0) {
+            if (rowIndex < 3) {
+              console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: 最初の列のためセル更新スキップ (original="${original}", netLapTime=${netLapTime}ms)`);
+            }
+            // ベストラップ判定用にラップタイムを記録
+            if (original !== '' && original !== '-') {
+              riderLapTimes.push({ cell, netLapTime, lapIndex });
+              allLapTimes.push({ cell, netLapTime, lapIndex, rowIndex });
+              graphLapTimes.push(netLapTime); // グラフ用データ
+            }
+            prevMs = ms;
+            return;
+          }
+
+          // 元の形式に小数点が含まれているかチェック
+          const includeDecimal = original.includes('.');
+          const newTimeStr = formatMsToTime(netLapTime, includeDecimal);
+
+          // 最初の数行だけデバッグログを出力
+          if (rowIndex < 3) {
+            console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: cumulative="${original}", netLapTime=${netLapTime}ms, newTimeStr="${newTimeStr}"`);
+          }
+
+          // セルの内容を更新
+          if (original !== '' && original !== '-') {
+            const targetElement = textDiv || cell;
+
+            // data属性に保存
+            cell.setAttribute('data-cumulative-time', original); // 元の経過時間（文字列）
+            cell.setAttribute('data-converted', 'true');
+            cell.setAttribute('data-net-lap-time', netLapTime.toString()); // 計算したラップタイム
+            cell.setAttribute('data-format', 'cumulative');
+
+            // テキストをラップタイムに更新
+            targetElement.textContent = newTimeStr;
+
+            // クラスを追加
+            cell.classList.add('cumulative-converted');
+
+            // ラップタイムを記録
+            riderLapTimes.push({ cell, netLapTime, lapIndex });
+            allLapTimes.push({ cell, netLapTime, lapIndex, rowIndex });
+            graphLapTimes.push(netLapTime); // グラフ用データ
+
+            convertedCount++;
+
+            if (rowIndex < 3) {
+              console.log(`  → 変換成功: convertedCount=${convertedCount}`);
+            }
+          } else {
+            if (rowIndex < 3) {
+              console.log(`  → スキップ: original="${original}"`);
+            }
+          }
+
           prevMs = ms;
-          return;
         }
-
-        // 元の形式に小数点が含まれているかチェック
-        const includeDecimal = original.includes('.');
-        const newTimeStr = formatMsToTime(netLapTime, includeDecimal);
-
-        // 最初の数行だけデバッグログを出力
-        if (rowIndex < 3) {
-          console.log(`  行${rowIndex + 1}, ラップ${lapIndex + 1}: original="${original}", netLapTime=${netLapTime}ms, newTimeStr="${newTimeStr}"`);
-        }
-
-        // セルの内容を更新
-        if (original !== '' && original !== '-') {
-          const targetElement = textDiv || cell;
-
-          // 元の値をdata属性に保存
-          cell.setAttribute('data-original-time', original);
-          cell.setAttribute('data-converted', 'true');
-          cell.setAttribute('data-net-lap-time', netLapTime.toString()); // ベストラップ検出用
-
-          // テキストを更新
-          targetElement.textContent = newTimeStr;
-
-          // クラスを追加
-          cell.classList.add('converted-lap-time');
-
-          // ラップタイムを記録
-          riderLapTimes.push({ cell, netLapTime, lapIndex });
-          allLapTimes.push({ cell, netLapTime, lapIndex, rowIndex });
-          graphLapTimes.push(netLapTime); // グラフ用データ
-
-          convertedCount++;
-
-          if (rowIndex < 3) {
-            console.log(`  → 変換成功: convertedCount=${convertedCount}`);
-          }
-        } else {
-          if (rowIndex < 3) {
-            console.log(`  → スキップ: original="${original}"`);
-          }
-        }
-
-        prevMs = ms;
-      }
-    });
+      });
+    }
 
     // この選手のベストラップを検出（スタートループを除外）
     if (riderLapTimes.length > 0) {
@@ -437,9 +543,14 @@ function convertLapTimesInTable(table) {
     }
   }
 
-  if (convertedCount > 0) {
-    console.log(`${convertedCount}個のラップタイムを変換しました`);
+  if (convertedCount > 0 || dataFormat === 'laptime') {
+    if (dataFormat === 'laptime') {
+      console.log(`ラップタイム形式を検出: ${graphRiders.length}名の選手データを処理しました`);
+    } else {
+      console.log(`${convertedCount}個のラップタイムを変換しました`);
+    }
     table.classList.add('lap-time-converted-table');
+    table.setAttribute('data-format', dataFormat);
 
     // グラフ用データを保存
     graphDataMap.set(table, {
@@ -502,6 +613,7 @@ function main() {
   console.log(`ページ内のテーブル数: ${tables.length}`);
 
   let totalConverted = false;
+  let hasLapTimeFormat = false;
 
   tables.forEach((table, index) => {
     console.log(`\nテーブル ${index + 1}/${tables.length} を処理中...`);
@@ -516,6 +628,11 @@ function main() {
       totalConverted = true;
       console.log(`  ✓ テーブル ${index + 1} の変換に成功しました`);
 
+      // データ形式をチェック
+      if (table.getAttribute('data-format') === 'laptime') {
+        hasLapTimeFormat = true;
+      }
+
       // グラフボタンを追加
       addGraphButton(table);
     } else {
@@ -525,7 +642,11 @@ function main() {
 
   // 結果を通知
   if (totalConverted) {
-    showNotification('ラップタイムを経過時間からネットラップタイムに変換しました', 'success');
+    if (hasLapTimeFormat) {
+      showNotification('ラップタイム形式を検出しました。経過時間を算出して表示しています。', 'success');
+    } else {
+      showNotification('ラップタイムを経過時間からネットラップタイムに変換しました', 'success');
+    }
     console.log('\n✓ 変換が完了しました');
   } else {
     console.log('\n変換可能なラップタイムテーブルが見つかりませんでした');
@@ -543,33 +664,41 @@ function revertConversion() {
   let revertedCount = 0;
 
   convertedCells.forEach(cell => {
-    const originalTime = cell.getAttribute('data-original-time');
-    if (originalTime) {
-      // div.text-right 要素を探す
-      const textDiv = cell.querySelector('div.text-right, div');
-      const targetElement = textDiv || cell;
+    const dataFormat = cell.getAttribute('data-format');
+    const cumulativeTime = cell.getAttribute('data-cumulative-time');
 
-      // 元の値に戻す
-      targetElement.textContent = originalTime;
+    // div.text-right 要素を探す
+    const textDiv = cell.querySelector('div.text-right, div');
+    const targetElement = textDiv || cell;
 
-      // クラスと属性を削除
-      cell.classList.remove('converted-lap-time');
-      cell.classList.remove('rider-best-lap');
-      cell.classList.remove('overall-best-lap');
-      cell.removeAttribute('data-original-time');
-      cell.removeAttribute('data-converted');
-      cell.removeAttribute('data-net-lap-time');
-      cell.removeAttribute('data-rider-best');
-      cell.removeAttribute('data-overall-best');
-
+    if (dataFormat === 'cumulative' && cumulativeTime) {
+      // 経過時間形式: 経過時間（元データ）に戻す
+      targetElement.textContent = cumulativeTime;
+      revertedCount++;
+    } else if (dataFormat === 'laptime') {
+      // ラップタイム形式: 表示は既にラップタイムなので何もしない
+      // 属性とクラスのみ削除
       revertedCount++;
     }
+
+    // クラスと属性を削除
+    cell.classList.remove('cumulative-converted');
+    cell.classList.remove('laptime-processed');
+    cell.classList.remove('rider-best-lap');
+    cell.classList.remove('overall-best-lap');
+    cell.removeAttribute('data-cumulative-time');
+    cell.removeAttribute('data-converted');
+    cell.removeAttribute('data-net-lap-time');
+    cell.removeAttribute('data-format');
+    cell.removeAttribute('data-rider-best');
+    cell.removeAttribute('data-overall-best');
   });
 
   // 変換済みテーブルのマーキングを削除
   const convertedTables = document.querySelectorAll('.lap-time-converted-table');
   convertedTables.forEach(table => {
     table.classList.remove('lap-time-converted-table');
+    table.removeAttribute('data-format');
   });
 
   // 通知バナーを削除
