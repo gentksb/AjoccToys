@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Dark background -->
+  <rect width="48" height="48" rx="8" fill="#323232"/>
+
+  <!-- Graph: white line, thick for visibility -->
+  <polyline
+    points="6,32 14,18 22,22 30,13 42,24"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="3"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+  />
+
+  <!-- Red data points -->
+  <circle cx="6"  cy="32" r="2.5" fill="#cc2211"/>
+  <circle cx="14" cy="18" r="2.5" fill="#cc2211"/>
+  <circle cx="22" cy="22" r="2.5" fill="#cc2211"/>
+  <circle cx="30" cy="13" r="2.5" fill="#cc2211"/>
+  <circle cx="42" cy="24" r="2.5" fill="#cc2211"/>
+
+  <!-- Bicycle: simplified wheels -->
+  <circle cx="14" cy="41" r="5" fill="none" stroke="#cc2211" stroke-width="2"/>
+  <circle cx="34" cy="41" r="5" fill="none" stroke="#cc2211" stroke-width="2"/>
+
+  <!-- Bicycle: simple frame -->
+  <polyline
+    points="14,41 20,34 27,41 27,34 34,41"
+    fill="none"
+    stroke="#cc2211"
+    stroke-width="2"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+  />
+</svg>
