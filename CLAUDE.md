@@ -240,6 +240,13 @@ revertAllConversions(); // 変換を元に戻す
 
 ## 開発ガイド
 
+### アイコン生成の注意点
+
+- macOS の `qlmanage` は SVG→PNG 変換が不安定なため**使用禁止**
+- SVG→PNG は `sharp`（Node.js）を使用: `cyclocross-extension/icons/generate-icons.js`
+- `sips` は PNG リサイズのみ可能（SVG 不可）
+- 初回セットアップ: `cd cyclocross-extension/icons && npm install sharp`
+
 ### ローカル開発環境のセットアップ
 
 1. リポジトリをクローン:
@@ -449,6 +456,47 @@ const lapsToCheck =
 3. **テスト**: 複数のリザルトページで動作確認
 4. **タグ付け**: `git tag v1.x.x`
 5. **プッシュ**: `git push origin master --tags`
+
+## Chrome Web Store 公開手順
+
+### アイコン再生成（SVG を変更した場合）
+
+```bash
+cd cyclocross-extension/icons
+node generate-icons.js
+# icon16.png / icon48.png / icon128.png が生成される
+# 前提: npm install sharp（初回のみ）
+```
+
+### アップロード用 ZIP 作成
+
+```bash
+cd cyclocross-extension
+zip -r ../ajocc-toys.zip . \
+  --exclude "icons/node_modules/*" \
+  --exclude "icons/*.svg" \
+  --exclude "icons/generate-icons.js" \
+  --exclude "icons/package*.json" \
+  --exclude "ROADMAP.md"
+```
+
+生成された `ajocc-toys.zip` をリポジトリルート（`AjoccToys/`）に配置して使用する。
+
+### ダッシュボード入力情報
+
+| 項目 | 内容 |
+|------|------|
+| カテゴリ | ツール |
+| 言語 | 日本語 |
+| プライバシーポリシー URL | `https://github.com/gentksb/AjoccToys/blob/master/PRIVACY.md` |
+| Single purpose | Converts lap times on AJOCC cyclocross result pages to net lap times and visualizes them as graphs |
+| データ収集 | なし（`storage.local` で ON/OFF 状態のみローカル保存） |
+
+### スクリーンショット
+
+`docs/images/` に 1280×800 の PNG を配置。現在の2枚：
+- `laptime-table.png` — ラップタイム変換テーブル
+- `laptime-visualization.png` — グラフ表示
 
 ## コントリビューション
 
