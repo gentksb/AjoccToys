@@ -57,7 +57,20 @@
 
 PC 用の最新版 Chrome/Edge で動作確認しています。
 
-### 開発者モードでインストール（推奨）
+### Chrome Web Store からのインストール（推奨）
+
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-インストール-blue?logo=googlechrome)](https://chromewebstore.google.com/detail/ajocctoys/amaehgcenbhjoacemfgiljkfmjlglabi)
+
+1. [Chrome Web Store のページ](https://chromewebstore.google.com/detail/ajocctoys/amaehgcenbhjoacemfgiljkfmjlglabi) を開きます
+
+2. 「Chrome に追加」ボタンをクリックします
+
+3. 拡張機能が読み込まれ、アイコンが表示されます。初回利用のためにピン留めを推奨します
+
+> [!TIP]
+> Chrome Web Store からインストールした場合、拡張機能は自動的に最新版に更新されます。手動での更新作業が不要なため、こちらのインストール方法を推奨します。
+
+### 開発者モードでインストール
 
 1. このリポジトリをクローンまたは Code ボタンから ZIP ダウンロードします
    ![ZIPでダウンロードして解凍](./docs/images/zipdl.png)
@@ -79,10 +92,6 @@ PC 用の最新版 Chrome/Edge で動作確認しています。
 1. インストール時に選択していた `cyclocross-extension` フォルダの内容を全て新しいファイルで上書きします
 
 2. `chrome://extensions/` にアクセスし、"更新" ボタンを押します。バージョンが変わっていれば成功です。
-
-### Chrome Web Store からのインストール
-
-Chrome Web Store の登録厳格化により、現在ストア公開予定はありません。
 
 ## 使用方法
 
@@ -228,6 +237,7 @@ Chrome Web Store の登録厳格化により、現在ストア公開予定はあ
 
 ## リンク
 
+- [Chrome Web Store](https://chromewebstore.google.com/detail/ajocctoys/amaehgcenbhjoacemfgiljkfmjlglabi)
 - [GitHub Repository](https://github.com/gentksb/AjoccToys)
 - [Issues](https://github.com/gentksb/AjoccToys/issues)
 - [Pull Requests](https://github.com/gentksb/AjoccToys/pulls)
