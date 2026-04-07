@@ -469,33 +469,6 @@
       margin: 0 0.75rem;
     }
 
-    /* ── Responsive ── */
-    @media (max-width: 768px) {
-      .hero {
-        padding: 3.5rem 1.5rem 3rem;
-      }
-
-      .features-grid,
-      .steps {
-        grid-template-columns: 1fr;
-      }
-
-      .screenshot-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .specs {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      nav .links {
-        gap: 1rem;
-      }
-
-      nav .links a {
-        font-size: 0.8rem;
-      }
-    }
   </style>
 </head>
 <body>
@@ -528,7 +501,7 @@
   <section id="features">
     <div class="section-label">Features</div>
     <h2 class="section-title">必要な分析を、最小限の操作で</h2>
-    <p class="section-desc">外部ライブラリに一切依存しない軽量設計。リザルトページを開くだけで自動的にラップタイム分析が始まります。</p>
+    <p class="section-desc">リザルトページを開くだけで自動的にラップタイム分析が始まります。</p>
 
     <div class="features-grid">
       <div class="feature-card">
@@ -536,7 +509,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
         </div>
         <h3>自動ラップタイム変換</h3>
-        <p>経過時間からネットラップタイムを自動算出。データ形式を自動判定し、逆方向の変換にも対応します。</p>
+        <p>経過時間からネットラップタイムを自動算出。ラップタイム掲載のレースにも対応し、経過時間への変換も行います。</p>
       </div>
 
       <div class="feature-card">
@@ -552,7 +525,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </div>
         <h3>グラフ可視化</h3>
-        <p>複数選手のラップタイム推移を折れ線グラフで比較。Canvas 2D APIによる軽量な自前実装です。</p>
+        <p>複数選手のラップタイム推移を折れ線グラフで比較。どの周回で差がついたかが一目でわかります。</p>
       </div>
 
       <div class="feature-card">
@@ -573,10 +546,10 @@
 
       <div class="feature-card">
         <div class="icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
         </div>
-        <h3>レスポンシブ</h3>
-        <p>モバイル・タブレットでも快適に操作できるレスポンシブデザインに対応しています。</p>
+        <h3>ワンクリックON/OFF</h3>
+        <p>ツールバーのアイコンをクリックするだけで変換のON/OFFを切り替え。設定は次回以降も保持されます。</p>
       </div>
     </div>
   </section>
@@ -660,19 +633,19 @@
       <div class="specs">
         <div class="spec">
           <div class="value">v1.3</div>
-          <div class="label">Latest Version</div>
+          <div class="label">最新バージョン</div>
         </div>
         <div class="spec">
           <div class="value">&lt;5KB</div>
-          <div class="label">Lightweight Script</div>
+          <div class="label">超軽量</div>
         </div>
         <div class="spec">
           <div class="value">0</div>
-          <div class="label">External Dependencies</div>
+          <div class="label">追加設定</div>
         </div>
         <div class="spec">
-          <div class="value">MV3</div>
-          <div class="label">Manifest Version</div>
+          <div class="value">1 click</div>
+          <div class="label">インストール</div>
         </div>
       </div>
     </div>
