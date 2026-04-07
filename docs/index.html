@@ -358,12 +358,50 @@
       word-break: break-all;
     }
 
+    /* ── Store CTA ── */
+    .store-cta {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .btn-lg {
+      padding: 0.9rem 2rem;
+      font-size: 1rem;
+    }
+
+    .manual-install-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      color: var(--color-text-secondary);
+      font-size: 0.825rem;
+    }
+
+    .manual-install-divider::before,
+    .manual-install-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+
     /* ── Specs ── */
+    .specs-section {
+      border-top: 1px solid var(--color-border);
+      background: var(--color-bg);
+    }
+
+    .specs-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
     .specs {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 1.25rem;
-      margin-top: 2.5rem;
     }
 
     .spec {
@@ -486,28 +524,6 @@
     </div>
   </div>
 
-  <!-- Specs -->
-  <section>
-    <div class="specs">
-      <div class="spec">
-        <div class="value">v1.3</div>
-        <div class="label">Latest Version</div>
-      </div>
-      <div class="spec">
-        <div class="value">&lt;5KB</div>
-        <div class="label">Lightweight Script</div>
-      </div>
-      <div class="spec">
-        <div class="value">0</div>
-        <div class="label">External Dependencies</div>
-      </div>
-      <div class="spec">
-        <div class="value">MV3</div>
-        <div class="label">Manifest Version</div>
-      </div>
-    </div>
-  </section>
-
   <!-- Features -->
   <section id="features">
     <div class="section-label">Features</div>
@@ -596,12 +612,23 @@
   <section id="install">
     <div class="section-label">Install</div>
     <h2 class="section-title">セットアップ</h2>
-    <p class="section-desc">Chrome Web Storeからインストールするか、ソースからビルドできます。</p>
+    <p class="section-desc">Chrome Web Storeからワンクリックでインストールできます。</p>
+
+    <div class="store-cta">
+      <a href="https://chromewebstore.google.com/detail/ajocctoys/ecfghgjipndchhodgeaaoaclmhhmdhll" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
+        Chrome Web Storeでインストール
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+    </div>
+
+    <div class="manual-install-divider">
+      <span>または、ソースから手動でインストール</span>
+    </div>
 
     <div class="steps">
       <div class="step">
-        <h3>拡張機能を追加</h3>
-        <p>Chrome Web Storeからインストール、またはリポジトリをクローンします。</p>
+        <h3>リポジトリをクローン</h3>
+        <p>GitHubからソースコードをダウンロードします。</p>
         <code>git clone https://github.com/gentksb/AjoccToys.git</code>
       </div>
 
@@ -624,6 +651,30 @@
     <div class="actions" style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
       <a href="https://chromewebstore.google.com/detail/ajocctoys/ecfghgjipndchhodgeaaoaclmhhmdhll" class="btn btn-primary" target="_blank" rel="noopener">Chrome Web Store</a>
       <a href="https://github.com/gentksb/AjoccToys" class="btn btn-outline" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+
+  <!-- Specs -->
+  <div class="specs-section">
+    <div class="specs-inner">
+      <div class="specs">
+        <div class="spec">
+          <div class="value">v1.3</div>
+          <div class="label">Latest Version</div>
+        </div>
+        <div class="spec">
+          <div class="value">&lt;5KB</div>
+          <div class="label">Lightweight Script</div>
+        </div>
+        <div class="spec">
+          <div class="value">0</div>
+          <div class="label">External Dependencies</div>
+        </div>
+        <div class="spec">
+          <div class="value">MV3</div>
+          <div class="label">Manifest Version</div>
+        </div>
+      </div>
     </div>
   </div>
 
