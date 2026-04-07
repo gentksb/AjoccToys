@@ -469,6 +469,33 @@
       margin: 0 0.75rem;
     }
 
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .hero {
+        padding: 3.5rem 1.5rem 3rem;
+      }
+
+      .features-grid,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      .screenshot-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .specs {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      nav .links {
+        gap: 1rem;
+      }
+
+      nav .links a {
+        font-size: 0.8rem;
+      }
+    }
   </style>
 </head>
 <body>
