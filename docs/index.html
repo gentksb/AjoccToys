@@ -3,308 +3,419 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="シクロクロス公式リザルトページの経過時間をネットラップタイムに変換するChrome拡張機能">
-  <meta name="keywords" content="シクロクロス,ラップタイム,Chrome拡張機能,cyclocross">
-  <title>Cyclocross Lap Time Converter - シクロクロスのラップタイム分析を簡単に</title>
+  <meta name="description" content="AjoccToys - AJOCC公式リザルトページのラップタイムを自動変換・可視化するChrome拡張機能">
+  <meta name="keywords" content="シクロクロス,AJOCC,ラップタイム,Chrome拡張機能,cyclocross,分析">
+  <title>AjoccToys - シクロクロスラップタイム分析ツール</title>
   <style>
-    * {
+    *, *::before, *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
+    :root {
+      --color-bg: #fafbfc;
+      --color-surface: #ffffff;
+      --color-text: #1a1a2e;
+      --color-text-secondary: #5a5a7a;
+      --color-accent: #0f7b6c;
+      --color-accent-light: #e6f5f2;
+      --color-accent-dark: #0a5c51;
+      --color-highlight: #f0883e;
+      --color-border: #e8eaed;
+      --color-code-bg: #f4f5f7;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
+      --font-mono: "SF Mono", "Fira Code", "Consolas", monospace;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+      --radius: 8px;
+      --max-width: 1080px;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      background-color: #f5f5f5;
+      font-family: var(--font-sans);
+      color: var(--color-text);
+      background-color: var(--color-bg);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    /* Header */
-    header {
-      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-      color: white;
-      padding: 1rem 0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /* ── Nav ── */
+    nav {
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 50;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
     }
 
-    header .container {
+    nav .inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      height: 56px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
     }
 
-    header h1 {
-      font-size: 1.5rem;
-      font-weight: 600;
-    }
-
-    header nav a {
-      color: white;
+    nav .logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--color-text);
       text-decoration: none;
-      margin-left: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    nav .logo span {
+      color: var(--color-accent);
+    }
+
+    nav .links {
+      display: flex;
+      gap: 1.75rem;
+      list-style: none;
+    }
+
+    nav .links a {
+      font-size: 0.875rem;
       font-weight: 500;
-      transition: opacity 0.2s;
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
     }
 
-    header nav a:hover {
-      opacity: 0.8;
+    nav .links a:hover {
+      color: var(--color-accent);
     }
 
-    /* Hero Section */
+    /* ── Hero ── */
     .hero {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 5rem 0;
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 5rem 1.5rem 4rem;
       text-align: center;
     }
 
-    .hero h2 {
-      font-size: 2.5rem;
+    .hero .badge {
+      display: inline-block;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      background: var(--color-accent-light);
+      border-radius: 999px;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
       margin-bottom: 1rem;
-      font-weight: 700;
     }
 
-    .hero p {
-      font-size: 1.25rem;
-      margin-bottom: 2rem;
-      opacity: 0.95;
+    .hero h1 em {
+      font-style: normal;
+      color: var(--color-accent);
     }
 
-    .cta-buttons {
+    .hero .lead {
+      font-size: 1.125rem;
+      color: var(--color-text-secondary);
+      max-width: 640px;
+      margin: 0 auto 2.25rem;
+    }
+
+    .hero .actions {
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       justify-content: center;
       flex-wrap: wrap;
     }
 
     .btn {
-      display: inline-block;
-      padding: 0.875rem 2rem;
-      border-radius: 6px;
-      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.7rem 1.5rem;
+      font-size: 0.9rem;
       font-weight: 600;
-      transition: all 0.3s;
-      font-size: 1rem;
+      border-radius: var(--radius);
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
     }
 
     .btn-primary {
-      background-color: #4CAF50;
-      color: white;
-      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+      background: var(--color-accent);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(15,123,108,0.25);
     }
 
     .btn-primary:hover {
-      background-color: #45a049;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
+      background: var(--color-accent-dark);
+      box-shadow: 0 4px 14px rgba(15,123,108,0.35);
+      transform: translateY(-1px);
     }
 
-    .btn-secondary {
-      background-color: white;
-      color: #667eea;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    .btn-outline {
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
     }
 
-    .btn-secondary:hover {
-      background-color: #f5f5f5;
-      transform: translateY(-2px);
+    .btn-outline:hover {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+      transform: translateY(-1px);
     }
 
-    /* Features Section */
-    .features {
-      padding: 4rem 0;
-      background-color: white;
+    /* ── Section common ── */
+    section {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 4rem 1.5rem;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 0.5rem;
     }
 
     .section-title {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 3rem;
-      color: #333;
+      font-size: 1.75rem;
       font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
     }
 
+    .section-desc {
+      color: var(--color-text-secondary);
+      max-width: 560px;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── Features grid ── */
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3rem;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
     }
 
     .feature-card {
-      background-color: #f9f9f9;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      transition: transform 0.3s, box-shadow 0.3s;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      transition: box-shadow 0.25s, border-color 0.25s;
     }
 
     .feature-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      border-color: var(--color-accent);
+      box-shadow: var(--shadow-md);
     }
 
-    .feature-icon {
-      font-size: 2.5rem;
+    .feature-card .icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--color-accent-light);
+      color: var(--color-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
       margin-bottom: 1rem;
     }
 
     .feature-card h3 {
-      font-size: 1.25rem;
-      margin-bottom: 0.75rem;
-      color: #4CAF50;
+      font-size: 1rem;
+      font-weight: 650;
+      margin-bottom: 0.4rem;
     }
 
     .feature-card p {
-      color: #666;
-      line-height: 1.7;
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+      line-height: 1.65;
     }
 
-    /* Screenshots Section */
-    .screenshots {
-      padding: 4rem 0;
-      background-color: #f5f5f5;
+    /* ── Screenshots ── */
+    .screenshots-section {
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
     }
 
-    .screenshot-item {
-      margin-bottom: 3rem;
-      background-color: white;
-      border-radius: 12px;
+    .screenshots-section .inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 4rem 1.5rem;
+    }
+
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .screenshot-card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.25s;
     }
 
-    .screenshot-item img {
+    .screenshot-card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .screenshot-card img {
       width: 100%;
       height: auto;
       display: block;
-      border-bottom: 1px solid #e0e0e0;
     }
 
-    .screenshot-caption {
-      padding: 1.5rem;
+    .screenshot-card .caption {
+      padding: 1.25rem;
     }
 
-    .screenshot-caption h3 {
-      font-size: 1.5rem;
-      margin-bottom: 0.5rem;
-      color: #333;
+    .screenshot-card .caption h3 {
+      font-size: 0.95rem;
+      font-weight: 650;
+      margin-bottom: 0.3rem;
     }
 
-    .screenshot-caption p {
-      color: #666;
-      line-height: 1.7;
+    .screenshot-card .caption p {
+      font-size: 0.825rem;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
     }
 
-    /* Installation Section */
-    .installation {
-      padding: 4rem 0;
-      background-color: white;
-    }
-
-    .install-steps {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .install-step {
-      display: flex;
+    /* ── How it works ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 1.5rem;
-      margin-bottom: 2rem;
-      padding: 1.5rem;
-      background-color: #f9f9f9;
-      border-radius: 8px;
-      border-left: 4px solid #4CAF50;
+      counter-reset: step;
     }
 
-    .step-number {
-      flex-shrink: 0;
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-      color: white;
-      border-radius: 50%;
+    .step {
+      position: relative;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 0.8rem;
       font-weight: 700;
-      font-size: 1.25rem;
-    }
-
-    .step-content h3 {
-      font-size: 1.125rem;
-      margin-bottom: 0.5rem;
-      color: #333;
-    }
-
-    .step-content p {
-      color: #666;
-      line-height: 1.7;
-    }
-
-    .step-content code {
-      background-color: #f0f0f0;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-family: "Courier New", monospace;
-      font-size: 0.9rem;
-    }
-
-    /* FAQ Section */
-    .faq {
-      padding: 4rem 0;
-      background-color: #f5f5f5;
-    }
-
-    .faq-item {
-      background-color: white;
+      background: var(--color-accent);
+      color: #fff;
       margin-bottom: 1rem;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
-    .faq-question {
-      padding: 1.25rem 1.5rem;
-      font-weight: 600;
-      color: #333;
-      cursor: pointer;
-      user-select: none;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .step h3 {
+      font-size: 0.95rem;
+      font-weight: 650;
+      margin-bottom: 0.4rem;
     }
 
-    .faq-question:hover {
-      background-color: #f9f9f9;
+    .step p {
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+      line-height: 1.65;
     }
 
-    .faq-answer {
-      padding: 0 1.5rem 1.25rem 1.5rem;
-      color: #666;
-      line-height: 1.7;
+    .step code {
+      display: inline-block;
+      background: var(--color-code-bg);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      word-break: break-all;
     }
 
-    /* Footer */
-    footer {
-      background-color: #333;
-      color: white;
-      padding: 2rem 0;
+    /* ── Specs ── */
+    .specs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-top: 2.5rem;
+    }
+
+    .spec {
       text-align: center;
+      padding: 1.5rem 1rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+    }
+
+    .spec .value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--color-accent);
+      letter-spacing: -0.03em;
+    }
+
+    .spec .label {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 4rem 1.5rem 5rem;
+    }
+
+    .cta-section h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .cta-section p {
+      color: var(--color-text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--color-border);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      font-size: 0.825rem;
+      color: var(--color-text-secondary);
     }
 
     footer a {
-      color: #4CAF50;
+      color: var(--color-accent);
       text-decoration: none;
     }
 
@@ -312,339 +423,219 @@
       text-decoration: underline;
     }
 
-    /* Responsive */
+    footer .footer-links {
+      margin-top: 0.5rem;
+    }
+
+    footer .footer-links a {
+      margin: 0 0.75rem;
+    }
+
+    /* ── Responsive ── */
     @media (max-width: 768px) {
-      .hero h2 {
-        font-size: 2rem;
+      .hero {
+        padding: 3.5rem 1.5rem 3rem;
       }
 
-      .hero p {
-        font-size: 1rem;
-      }
-
-      .features-grid {
+      .features-grid,
+      .steps {
         grid-template-columns: 1fr;
       }
 
-      header h1 {
-        font-size: 1.125rem;
+      .screenshot-grid {
+        grid-template-columns: 1fr;
       }
 
-      header nav a {
-        margin-left: 1rem;
-        font-size: 0.875rem;
+      .specs {
+        grid-template-columns: repeat(2, 1fr);
       }
-    }
 
-    /* Placeholder image style */
-    .placeholder-image {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 400px;
-      font-size: 1.25rem;
-      font-weight: 600;
-      text-align: center;
-      padding: 2rem;
+      nav .links {
+        gap: 1rem;
+      }
+
+      nav .links a {
+        font-size: 0.8rem;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <header>
-    <div class="container">
-      <h1>⏱️ Cyclocross Lap Time Converter</h1>
-      <nav>
-        <a href="#features">機能</a>
-        <a href="#screenshots">デモ</a>
-        <a href="#installation">インストール</a>
-        <a href="https://github.com/gentksb/ajocc-tools" target="_blank">GitHub</a>
-      </nav>
-    </div>
-  </header>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="container">
-      <h2>シクロクロスのラップタイム分析を<br>もっと簡単に</h2>
-      <p>経過時間を自動的にネットラップタイムに変換し、グラフで可視化するChrome拡張機能</p>
-      <div class="cta-buttons">
-        <a href="https://github.com/gentksb/ajocc-tools/releases" class="btn btn-primary" target="_blank">ダウンロード（GitHub Releases）</a>
-        <a href="#installation" class="btn btn-secondary">インストール方法を見る</a>
+  <!-- Nav -->
+  <nav>
+    <div class="inner">
+      <a class="logo" href="#">Ajocc<span>Toys</span></a>
+      <ul class="links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#demo">Demo</a></li>
+        <li><a href="#install">Install</a></li>
+        <li><a href="https://github.com/gentksb/AjoccToys" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="badge">Chrome Extension for AJOCC Cyclocross</div>
+    <h1>ラップタイムを<em>瞬時に分析</em></h1>
+    <p class="lead">AJOCC公式リザルトページの経過時間をネットラップタイムに自動変換し、グラフで可視化。レース分析がワンクリックで完了します。</p>
+    <div class="actions">
+      <a href="https://chromewebstore.google.com/detail/ajocctoys/ecfghgjipndchhodgeaaoaclmhhmdhll" class="btn btn-primary" target="_blank" rel="noopener">Chrome Web Store</a>
+      <a href="https://github.com/gentksb/AjoccToys" class="btn btn-outline" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+
+  <!-- Specs -->
+  <section>
+    <div class="specs">
+      <div class="spec">
+        <div class="value">v1.3</div>
+        <div class="label">Latest Version</div>
       </div>
-    </div>
-  </section>
-
-  <!-- Features Section -->
-  <section id="features" class="features">
-    <div class="container">
-      <h2 class="section-title">主な機能</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">🔄</div>
-          <h3>ラップタイム自動変換</h3>
-          <p>経過時間（スプリットタイム）を自動的にネットラップタイムに変換。各周回の実タイムが一目でわかります。</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🏆</div>
-          <h3>ベストラップのハイライト</h3>
-          <p>各選手の最速ラップとレース全体の最速ラップを自動検出してハイライト表示。スタートループも賢く除外します。</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <h3>グラフ表示機能</h3>
-          <p>ラップタイムの推移をグラフで可視化。複数選手を選択して比較でき、1周目の表示/非表示も切り替え可能です。</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">⚡</div>
-          <h3>軽量・高速</h3>
-          <p>外部ライブラリに依存しない自作実装により、軽量で高速に動作します。ページの読み込みを遅くしません。</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">🎨</div>
-          <h3>ダークモード対応</h3>
-          <p>システムのダークモード設定に自動追従。夜間の利用時も目に優しい表示で快適に使えます。</p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon">📱</div>
-          <h3>レスポンシブ対応</h3>
-          <p>スマートフォンやタブレットでも快適に操作できるレスポンシブデザイン。モバイル環境でも分析が可能です。</p>
-        </div>
+      <div class="spec">
+        <div class="value">&lt;5KB</div>
+        <div class="label">Lightweight Script</div>
+      </div>
+      <div class="spec">
+        <div class="value">0</div>
+        <div class="label">External Dependencies</div>
+      </div>
+      <div class="spec">
+        <div class="value">MV3</div>
+        <div class="label">Manifest Version</div>
       </div>
     </div>
   </section>
 
-  <!-- Screenshots Section -->
-  <section id="screenshots" class="screenshots">
-    <div class="container">
-      <h2 class="section-title">スクリーンショット</h2>
+  <!-- Features -->
+  <section id="features">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">必要な分析を、最小限の操作で</h2>
+    <p class="section-desc">外部ライブラリに一切依存しない軽量設計。リザルトページを開くだけで自動的にラップタイム分析が始まります。</p>
 
-      <div class="screenshot-item">
-        <!--
-          必要な画像: screenshot-before-after.png
-          内容: 変換前と変換後のテーブル比較
-          - 左側: 経過時間（19:22.6, 29:20.6など）
-          - 右側: ネットラップタイム（9:54.5, 9:58.0など）
-          - 変換後のセルには緑色の背景と⏱アイコンが表示されている状態
-          推奨サイズ: 1200x600px
-        -->
-        <div class="placeholder-image">
-          スクリーンショット: 変換前後の比較<br>
-          (screenshot-before-after.png)
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
         </div>
-        <div class="screenshot-caption">
-          <h3>📊 経過時間をネットラップタイムに変換</h3>
-          <p>リザルトページに表示される経過時間を、ワンクリックでネットラップタイムに自動変換。各周回の実際のタイムが一目でわかります。変換されたセルは緑色でハイライトされ、ホバーすると元の経過時間も確認できます。</p>
-        </div>
+        <h3>自動ラップタイム変換</h3>
+        <p>経過時間からネットラップタイムを自動算出。データ形式を自動判定し、逆方向の変換にも対応します。</p>
       </div>
 
-      <div class="screenshot-item">
-        <!--
-          必要な画像: screenshot-best-lap.png
-          内容: ベストラップのハイライト表示
-          - 個人ベストラップ: 黄色背景 + ★アイコン
-          - レース全体ベストラップ: オレンジ背景 + 🏆アイコン
-          - 複数の選手のラップタイムが表示され、それぞれのベストが強調されている
-          推奨サイズ: 1200x600px
-        -->
-        <div class="placeholder-image">
-          スクリーンショット: ベストラップのハイライト<br>
-          (screenshot-best-lap.png)
+      <div class="feature-card">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
-        <div class="screenshot-caption">
-          <h3>🏆 ベストラップを自動検出</h3>
-          <p>各選手の最速ラップを黄色で、レース全体の最速ラップをオレンジ色で自動ハイライト。スタートループは賢く検出して除外されるため、純粋な周回タイムでの比較が可能です。</p>
-        </div>
+        <h3>ベストラップ検出</h3>
+        <p>各選手の個人ベストとレース全体のベストラップを自動検出。スタートループを賢く除外して判定します。</p>
       </div>
 
-      <div class="screenshot-item">
-        <!--
-          必要な画像: screenshot-graph.png
-          内容: グラフ表示機能の全体像
-          - 折れ線グラフで複数選手のラップタイム推移
-          - 異なる色で3〜5名の選手が表示されている
-          - グラフ下部に凡例
-          - X軸: 周回数、Y軸: タイム
-          推奨サイズ: 1200x700px
-        -->
-        <div class="placeholder-image">
-          スクリーンショット: グラフ表示機能<br>
-          (screenshot-graph.png)
+      <div class="feature-card">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </div>
-        <div class="screenshot-caption">
-          <h3>📈 ラップタイムをグラフで可視化</h3>
-          <p>複数の選手を選択して、ラップタイムの推移を折れ線グラフで比較できます。ペースの変化や、どの周回でタイム差がついたかが一目瞭然です。</p>
-        </div>
+        <h3>グラフ可視化</h3>
+        <p>複数選手のラップタイム推移を折れ線グラフで比較。Canvas 2D APIによる軽量な自前実装です。</p>
       </div>
 
-      <div class="screenshot-item">
-        <!--
-          必要な画像: screenshot-controls.png
-          内容: グラフコントロールUI
-          - テーブル上部の説明セクション（💡 グラフ表示: ...）
-          - 選手名の左側にチェックボックス
-          - グラフコントロールエリア（1周目トグル、クイック選択ボタン）
-          - 「上位3名」「全選手」「すべて解除」ボタン
-          推奨サイズ: 1200x500px
-        -->
-        <div class="placeholder-image">
-          スクリーンショット: 選手選択とコントロール<br>
-          (screenshot-controls.png)
+      <div class="feature-card">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         </div>
-        <div class="screenshot-caption">
-          <h3>🎛️ 直感的な操作</h3>
-          <p>選手名の左側のチェックボックスで表示したい選手を選択。「上位3名」「全選手」などのクイック選択ボタンで簡単に切り替えられます。1周目の表示/非表示もワンクリックで切り替え可能です。</p>
-        </div>
+        <h3>ゼロコンフィグ</h3>
+        <p>インストール後、設定不要でそのまま動作。AJOCC公式リザルトページを開くだけで自動的に起動します。</p>
       </div>
 
-      <div class="screenshot-item">
-        <!--
-          必要な画像: screenshot-install.png
-          内容: Chrome拡張機能のインストール画面
-          - chrome://extensions/ のページ
-          - デベロッパーモードがONになっている状態
-          - 「パッケージ化されていない拡張機能を読み込む」ボタンが強調されている
-          推奨サイズ: 1200x600px
-        -->
-        <div class="placeholder-image">
-          スクリーンショット: インストール方法<br>
-          (screenshot-install.png)
+      <div class="feature-card">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         </div>
-        <div class="screenshot-caption">
-          <h3>⚙️ 簡単インストール</h3>
-          <p>数ステップでインストール完了。Chrome拡張機能ページから「パッケージ化されていない拡張機能を読み込む」を選択するだけです。</p>
+        <h3>ダークモード</h3>
+        <p>システムのカラースキーム設定に自動追従。夜間でも目に優しい表示を提供します。</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
         </div>
+        <h3>レスポンシブ</h3>
+        <p>モバイル・タブレットでも快適に操作できるレスポンシブデザインに対応しています。</p>
       </div>
     </div>
   </section>
 
-  <!-- Installation Section -->
-  <section id="installation" class="installation">
-    <div class="container">
-      <h2 class="section-title">インストール方法</h2>
-      <div class="install-steps">
-        <div class="install-step">
-          <div class="step-number">1</div>
-          <div class="step-content">
-            <h3>リポジトリをダウンロード</h3>
-            <p>GitHubリポジトリから最新版をクローンまたはZIPでダウンロードします。</p>
-            <p><code>git clone https://github.com/gentksb/ajocc-tools.git</code></p>
+  <!-- Screenshots -->
+  <div class="screenshots-section" id="demo">
+    <div class="inner">
+      <div class="section-label">Demo</div>
+      <h2 class="section-title">実際の動作イメージ</h2>
+      <p class="section-desc">AJOCC公式リザルトページ上で動作する拡張機能の画面です。</p>
+
+      <div class="screenshot-grid">
+        <div class="screenshot-card">
+          <img src="images/laptime-table.png" alt="ラップタイム変換テーブル" loading="lazy">
+          <div class="caption">
+            <h3>ラップタイム変換</h3>
+            <p>経過時間をネットラップタイムに変換し、ベストラップをハイライト表示。ホバーで元の経過時間も確認できます。</p>
           </div>
         </div>
 
-        <div class="install-step">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <h3>Chrome拡張機能ページを開く</h3>
-            <p>Google Chromeを開き、アドレスバーに <code>chrome://extensions/</code> と入力してEnterキーを押します。</p>
-          </div>
-        </div>
-
-        <div class="install-step">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <h3>デベロッパーモードをON</h3>
-            <p>右上の「デベロッパーモード」トグルをクリックしてONにします。</p>
-          </div>
-        </div>
-
-        <div class="install-step">
-          <div class="step-number">4</div>
-          <div class="step-content">
-            <h3>拡張機能を読み込む</h3>
-            <p>「パッケージ化されていない拡張機能を読み込む」をクリックし、<code>cyclocross-extension</code> フォルダを選択します。</p>
-          </div>
-        </div>
-
-        <div class="install-step">
-          <div class="step-number">5</div>
-          <div class="step-content">
-            <h3>完了！</h3>
-            <p><a href="https://data.cyclocross.jp/race/24830" target="_blank">シクロクロス公式リザルトページ</a>にアクセスして、自動的にラップタイムが変換されることを確認してください。</p>
+        <div class="screenshot-card">
+          <img src="images/laptime-visualization.png" alt="ラップタイムグラフ表示" loading="lazy">
+          <div class="caption">
+            <h3>グラフ可視化</h3>
+            <p>選手を選択してラップタイムの推移を比較。ペース変動やタイム差が一目でわかります。</p>
           </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- FAQ Section -->
-  <section id="faq" class="faq">
-    <div class="container">
-      <h2 class="section-title">よくある質問</h2>
+  <!-- Install -->
+  <section id="install">
+    <div class="section-label">Install</div>
+    <h2 class="section-title">セットアップ</h2>
+    <p class="section-desc">Chrome Web Storeからインストールするか、ソースからビルドできます。</p>
 
-      <div class="faq-item">
-        <div class="faq-question">
-          Q. どのブラウザで動作しますか？
-        </div>
-        <div class="faq-answer">
-          A. Google ChromeおよびMicrosoft Edge（Chromiumベース）で動作します。現在のところFirefoxには対応していません。
-        </div>
+    <div class="steps">
+      <div class="step">
+        <h3>拡張機能を追加</h3>
+        <p>Chrome Web Storeからインストール、またはリポジトリをクローンします。</p>
+        <code>git clone https://github.com/gentksb/AjoccToys.git</code>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-question">
-          Q. 変換をOFFにすることはできますか？
-        </div>
-        <div class="faq-answer">
-          A. はい。ツールバーの拡張機能アイコンをクリックすることで、変換のON/OFFを切り替えられます。設定は保存されるため、次回アクセス時も維持されます。
-        </div>
+      <div class="step">
+        <h3>開発者モードで読み込み</h3>
+        <p><code>chrome://extensions/</code> を開き、デベロッパーモードをONにして <code>cyclocross-extension</code> フォルダを読み込みます。</p>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-question">
-          Q. 元の経過時間を確認することはできますか？
-        </div>
-        <div class="faq-answer">
-          A. はい。変換されたセルにマウスをホバーすると、ツールチップで元の経過時間が表示されます。
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          Q. スタートループが短い大会ではどうなりますか？
-        </div>
-        <div class="faq-answer">
-          A. スタートループを自動検出し、ベストラップの判定から除外します。また、グラフ表示では「1周目を表示」チェックボックスで1周目を含めるか選択できます。
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          Q. バグを見つけた場合はどうすればいいですか？
-        </div>
-        <div class="faq-answer">
-          A. <a href="https://github.com/gentksb/ajocc-tools/issues" target="_blank">GitHub Issues</a> でバグ報告をお願いします。具体的なページのURLと、どのような問題が発生したかを記載していただけると助かります。
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-question">
-          Q. 新機能のリクエストはできますか？
-        </div>
-        <div class="faq-answer">
-          A. はい。GitHub Issuesで機能要望を受け付けています。CSVエクスポート機能など、いくつかの機能を検討中です。
-        </div>
+      <div class="step">
+        <h3>リザルトページを開く</h3>
+        <p>AJOCC公式リザルトページにアクセスするだけ。自動でラップタイムの変換と分析が始まります。</p>
       </div>
     </div>
   </section>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2>レース分析を、もっとスマートに</h2>
+    <p>AjoccToysで、シクロクロスのラップタイム分析を始めましょう。</p>
+    <div class="actions" style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+      <a href="https://chromewebstore.google.com/detail/ajocctoys/ecfghgjipndchhodgeaaoaclmhhmdhll" class="btn btn-primary" target="_blank" rel="noopener">Chrome Web Store</a>
+      <a href="https://github.com/gentksb/AjoccToys" class="btn btn-outline" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer>
-    <div class="container">
-      <p>&copy; 2025 <a href="https://github.com/gentksb" target="_blank">gentksb</a> | MIT License</p>
-      <p>
-        <a href="https://github.com/gentksb/ajocc-tools" target="_blank">GitHub</a> |
-        <a href="https://github.com/gentksb/ajocc-tools/issues" target="_blank">Issues</a> |
-        <a href="https://data.cyclocross.jp/" target="_blank">シクロクロス公式サイト</a>
-      </p>
+    <p>&copy; 2025 <a href="https://github.com/gentksb" target="_blank" rel="noopener">gentksb</a> &middot; MIT License</p>
+    <div class="footer-links">
+      <a href="https://github.com/gentksb/AjoccToys" target="_blank" rel="noopener">Source</a>
+      <a href="https://github.com/gentksb/AjoccToys/issues" target="_blank" rel="noopener">Issues</a>
+      <a href="https://github.com/gentksb/AjoccToys/blob/master/PRIVACY.md" target="_blank" rel="noopener">Privacy</a>
     </div>
   </footer>
+
 </body>
 </html>
